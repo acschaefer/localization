@@ -3,9 +3,9 @@
 
 #include <vector>
 
+#include <Eigen/Dense>
+
 #include "particle.h"
-#include "motion_model.h"
-#include "sensor_model.h"
 
 
 template <typename MotionModelT, typename SensorModelT>
@@ -16,15 +16,18 @@ protected:
     MotionModelT motion_model_;
     SensorModelT sensor_model_;
 
+
 public:
-    bool init(unsigned int n_particles)
+    bool init(unsigned int n_particles, const Eigen::Isometry3d& start_pose)
     {
-        particles_.resize(n_particles);
+        particles_.resize(n_particles, Particle(start_pose));
+        motion_model_.update(particles_, Eigen::Isometry3d::Identity());
     }
 
-    bool update_motion(const typename MotionModelT::Motion& motion)
+
+    bool update_motion(const Eigen::Isometry3d& movement)
     {
-        return true;
+        return motion_model_.update(particles_, movement);
     }
 
 
