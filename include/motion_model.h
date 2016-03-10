@@ -5,7 +5,7 @@
 class MotionModel
 {
 public:
-    typedef int State;
+    typedef int Motion;
 };
 
 

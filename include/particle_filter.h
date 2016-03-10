@@ -16,14 +16,13 @@ protected:
     MotionModelT motion_model_;
     SensorModelT sensor_model_;
 
-
 public:
     bool init(unsigned int n_particles)
     {
-        particles_.resize(n_particles, Particle(0.5));
+        particles_.resize(n_particles);
     }
 
-    bool update_motion(const typename MotionModelT::State& state)
+    bool update_motion(const typename MotionModelT::Motion& motion)
     {
         return true;
     }
