@@ -3,7 +3,10 @@
 
 int main(int argc, char** argv)
 {
-    ParticleFilter particle_filter;
+    ParticleFilter<MotionModel, SensorModel> particle_filter;
+    particle_filter.init(5);
+    particle_filter.update_motion(4);
+    particle_filter.integrate_measurement(3);
 
     return 0;
 }
