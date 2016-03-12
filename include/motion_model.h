@@ -4,37 +4,31 @@
 #include <Eigen/Dense>
 
 #include "particle.h"
-#include "random_vector_generator.h"
+#include "random_generators.h"
 
 
 class MotionModel
 {
 protected:
-    Eigen::Vector3d std_dev_position, std_dev_orientation;
-    RandomVectorGenerator random_vector_generator_;
-    RandomQuaternionGenerator random_quaternion_generator_;
+    RandomPoseGenerator pose_generator_;
 
 
 public:
-    MotionModel()
-      /*  : random_vector_generator_(),
-          random_quaternion_generator_()*/
+    MotionModel(const Eigen::Vector3d& position_var, double angle_var,
+                const Eigen::Vector3d axis_var)
+     : pose_generator_(Eigen::Vector3d::Zero(), position_var, 0.0, angle_var,
+                       Eigen::Vector3d::Zero(), axis_var)
     {
     }
 
 
-    bool update(std::vector<Particle>& particles, const Eigen::Isometry3d& movement)
+    void update(std::vector<Particle>& particles, const Eigen::Isometry3d& movement)
     {
-        for (int i = 0; i < particles.size(); i++)
+        for (int p = 0; p < particles.size(); p++)
         {
-            Eigen::Isometry3d noise;
-            noise.rotate(random_quaternion_generator_.get_quaternion());
-            noise.translate(random_vector_generator_.get_vector());
-
-            particles[i].move(noise * movement);
+            Eigen::Isometry3d noise = pose_generator_.generate_pose();
+            particles[p].move(noise * movement);
         }
-
-        return true;
     }
 };
 
