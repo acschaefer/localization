@@ -12,31 +12,42 @@
 #include <boost/random/variate_generator.hpp>
 
 
+class RandomNumberGenerator
+{
+protected:
+    boost::random::variate_generator<boost::mt19937, boost::normal_distribution<double> > generator_;
+
+
+public:
+	RandomNumberGenerator(double mean = 0.0, double var = 1.0)
+	 : generator_(boost::mt19937(time(NULL)), boost::normal_distribution<double>(mean, var))
+    {
+    }
+
+
+	double generate_number()
+	{
+		return generator_();
+	}
+};
+
+
 template<int Dim>
 class RandomVectorGenerator
 {
 protected:
-    typedef Eigen::Matrix<double, Dim, 1>
-            Vector;
-    typedef boost::normal_distribution<double>
-            NormalDistribution;
-    typedef boost::random::variate_generator<boost::mt19937, boost::normal_distribution<double> >
-            RandomNumberGenerator;
+    typedef Eigen::Matrix<double, Dim, 1> Vector;
 
 
 protected:
     std::vector<RandomNumberGenerator> number_generators_;
-
+    
 
 public:
     RandomVectorGenerator(const Vector& mean, const Vector& var) 
     {    
         for (int row = 0; row < Dim; row++)
-        {
-            NormalDistribution normal_distribution(mean[row], var[row]);
-            RandomNumberGenerator number_generator(boost::mt19937(time(NULL)), normal_distribution);
-            number_generators_.push_back(number_generator);
-        }
+            number_generators_.push_back(RandomNumberGenerator(mean[row], var[row]));
     }
 
 
@@ -45,7 +56,7 @@ public:
         Vector vector;
 
         for (int row = 0; row < Dim; row++)
-            vector[row] = number_generators_[row]();
+            vector[row] = number_generators_[row].generate_number();
 
         return vector;
     }
@@ -55,21 +66,21 @@ public:
 class RandomAngleAxisGenerator : protected RandomVectorGenerator<3>
 {
 protected:
-    RandomNumberGenerator number_generator_angle_;
+    RandomNumberGenerator angle_generator_;
 
 
 public:
     RandomAngleAxisGenerator(double angle_mean, double angle_var,
                              const Eigen::Vector3d& axis_mean, const Eigen::Vector3d& axis_var)
      : RandomVectorGenerator<3>(axis_mean, axis_var), 
-       number_generator_angle_(boost::mt19937(time(NULL)), NormalDistribution(angle_mean, angle_var))
+       angle_generator_(angle_mean, angle_var)
     {
     }	
 
 
     Eigen::AngleAxisd generate_angle_axis()
     {
-	return Eigen::AngleAxisd(number_generator_angle_(), generate_vector().normalized());
+		return Eigen::AngleAxisd(angle_generator_.generate_number(), generate_vector().normalized());
     }
 };
 
