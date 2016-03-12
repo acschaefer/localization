@@ -38,6 +38,16 @@ public:
     }
 
 
+    Eigen::Vector3d get_mean()
+    {
+        Eigen::Vector3d mean_position;
+
+        for (int p = 0; p < particles_.size(); p++)
+            mean_position += particles_[p].get_pose().translation();		
+        
+        return mean_position / particles_.size();
+    }
+
 /*    bool integrate_measurement(const typename SensorModelT::Measurement& measurement)
     {
         return true;

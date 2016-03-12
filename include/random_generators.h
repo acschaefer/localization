@@ -24,10 +24,10 @@ public:
     }
 
 
-	double generate_number()
-	{
-		return generator_();
-	}
+    double generate_number()
+    {
+        return generator_();
+    }
 };
 
 
@@ -79,7 +79,7 @@ public:
 
     Eigen::AngleAxisd generate_angle_axis()
     {
-		return Eigen::AngleAxisd(angle_generator_.generate_number(), generate_vector().normalized());
+        return Eigen::AngleAxisd(angle_generator_.generate_number(), generate_vector().normalized());
     }
 };
 
@@ -104,9 +104,9 @@ public:
     Eigen::Isometry3d generate_pose()
     {
         return Eigen::Isometry3d().fromPositionOrientationScale(
-                    vector_generator_.generate_vector(), 
-                    angle_axis_generator_.generate_angle_axis(),
-                    Eigen::Vector3d(1.0, 1.0, 1.0));
+                        vector_generator_.generate_vector(),
+                        angle_axis_generator_.generate_angle_axis(),
+                        Eigen::Vector3d(1.0, 1.0, 1.0));
     }
 };
 
