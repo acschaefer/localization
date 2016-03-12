@@ -126,6 +126,7 @@ include_directories(include ${Eigen_INCLUDE_DIRS})
 
 ## Declare a C++ executable
 add_executable(localizer src/localizer.cpp)
+add_executable(test_random_generator src/test_random_generator.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -135,6 +136,7 @@ add_executable(localizer src/localizer.cpp)
 target_link_libraries(localizer
   ${catkin_LIBRARIES}
 )
+
 
 #############
 ## Install ##
