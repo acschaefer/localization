@@ -1,4 +1,4 @@
-#include "random_vector_generator.h"
+#include "random_generators.h"
 #include <iostream>
 
 
