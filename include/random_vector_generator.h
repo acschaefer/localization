@@ -6,14 +6,18 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
 
 
+template<int Dim>
 class RandomVectorGenerator
 {
 protected:
+    typedef Eigen::Matrix<double, Dim, 1>
+            Vector;
     typedef boost::normal_distribution<double>
             NormalDistribution;
     typedef boost::random::variate_generator<boost::mt19937, boost::normal_distribution<double> >
@@ -25,46 +29,47 @@ protected:
 
 
 public:
-    RandomVectorGenerator(const Eigen::Vector3d& std_dev = Eigen::Vector3d::Zero())
-    {
-        for (int i = 0; i < std_dev.cols(); i++)
+    RandomVectorGenerator(const Vector& mean, const Vector& var) 
+    {    
+        for (int row = 0; row < Dim; row++)
         {
-            NormalDistribution normal_distribution(0.0, std_dev[i]);
+            NormalDistribution normal_distribution(mean[row], var[row]);
             RandomNumberGenerator random_number_generator(boost::mt19937(time(NULL)), normal_distribution);
             random_number_generators_.push_back(random_number_generator);
         }
     }
 
 
-    Eigen::Vector3d get_vector()
+    virtual Vector generate_vector()
     {
-        Eigen::Vector3d vector;
+        Vector vector;
 
-        for (int i = 0; i < vector.cols(); i++)
-            vector[i] = random_number_generators_[i]();
+        for (int row = 0; row < Dim; row++)
+            vector[row] = random_number_generators_[row]();
 
         return vector;
     }
 };
 
 
-class RandomQuaternionGenerator : protected RandomVectorGenerator
+class RandomAngleAxisGenerator : protected RandomVectorGenerator<3>
 {
+protected:
+    RandomNumberGenerator random_number_generator_angle_;
+
+
 public:
-    Eigen::Quaterniond get_quaternion()
+    RandomAngleAxisGenerator(double angle_mean, double angle_var,
+                             const Eigen::Vector3d& axis_mean, const Eigen::Vector3d& axis_var)
+     : RandomVectorGenerator<3>(axis_mean, axis_var), 
+       random_number_generator_angle_(boost::mt19937(time(NULL)), NormalDistribution(angle_mean, angle_var))
     {
-        Eigen::Vector3d euler_angles = get_vector();
+    }	
 
-        Eigen::AngleAxisd rotation_x(euler_angles[0], Eigen::Vector3d::UnitX());
-        Eigen::AngleAxisd rotation_y(euler_angles[1], Eigen::Vector3d::UnitY());
-        Eigen::AngleAxisd rotation_z(euler_angles[2], Eigen::Vector3d::UnitX());
 
-        Eigen::Quaterniond quaternion;
-        quaternion = rotation_z * quaternion;
-        quaternion = rotation_y * quaternion;
-        quaternion = rotation_x * quaternion;
-
-        return quaternion;
+    Eigen::AngleAxisd generate_angle_axis()
+    {
+	return Eigen::AngleAxisd(random_number_generator_angle_(), generate_vector().normalized());
     }
 };
 
