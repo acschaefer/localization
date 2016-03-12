@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>localization</name>
+  <name>localizer</name>
   <version>0.0.0</version>
   <description>The localization package</description>
 
