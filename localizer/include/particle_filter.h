@@ -10,48 +10,49 @@
 #include "sensor_model.h"
 
 
+template<typename MotionModelT>
 class ParticleFilter
 {
+public:
+    typedef typename MotionModelT::RobotState RobotStateT;
+
+
 protected:
-    std::vector<Particle> particles_;
-    MotionModel motion_model_;
-    SensorModel sensor_model_;
+    MotionModelT motion_model_;
+    std::vector<Particle<RobotStateT> > particles_;
 
 
 public:
-    ParticleFilter(const MotionModel& motion_model, const SensorModel& sensor_model)
-     : motion_model_(motion_model), sensor_model_(sensor_model)
+    ParticleFilter(const MotionModelT& motion_model)
+     : motion_model_(motion_model)
     {
     }
 
 
-    bool init(unsigned int n_particles, const Eigen::Isometry3d& start_pose)
+    void init(unsigned int n_particles, const RobotStateT& start_pose = RobotStateT::Identity())
     {
-        particles_.resize(n_particles, Particle(start_pose));
-        motion_model_.update(particles_, Eigen::Isometry3d::Identity());
+        particles_.resize(n_particles, Particle<RobotStateT>(start_pose));
+        motion_model_.update(RobotStateT::Identity(), particles_);
     }
 
 
-    bool update_motion(const Eigen::Isometry3d& movement)
+    void update_motion(const RobotStateT& movement)
     {
-        motion_model_.update(particles_, movement);
+        motion_model_.update(movement, particles_);
     }
 
 
-    Eigen::Vector3d get_mean()
+    RobotStateT get_mean()
     {
-        Eigen::Vector3d mean_position;
+        RobotStateT mean;
 
         for (int p = 0; p < particles_.size(); p++)
-            mean_position += particles_[p].get_pose().translation();		
-        
-        return mean_position / particles_.size();
-    }
+            mean.translation() += particles_[p].get_pose().translation();
 
-/*    bool integrate_measurement(const typename SensorModelT::Measurement& measurement)
-    {
-        return true;
-    }*/
+        mean.translation() /= particles_.size();
+
+        return mean;
+    }
 };
 
 

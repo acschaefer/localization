@@ -4,31 +4,37 @@
 #include <Eigen/Dense>
 
 
+template<typename RobotStateT>
 class Particle
 {
 protected:
-    Eigen::Isometry3d pose_;
+    RobotStateT pose_;
     double weight_;
 
 
 public:
-    Particle(const Eigen::Isometry3d& pose = Eigen::Isometry3d::Identity(),
-             double weight = 1.0)
+    Particle(const RobotStateT& pose = RobotStateT::Identity(), double weight = 1.0)
     {
         pose_   = pose;
         weight_ = weight;
     }
 
 
-    bool move(const Eigen::Isometry3d& movement)
+    void set_pose(const RobotStateT& pose)
     {
-        pose_ = movement * pose_;
+        pose_ = pose;
     }
 
 
-    Eigen::Isometry3d get_pose()
+    RobotStateT get_pose()
     {
         return pose_;
+    }
+
+
+    void set_weight(double weight)
+    {
+        weight_ = weight;
     }
 
 

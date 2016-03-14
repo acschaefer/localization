@@ -11,6 +11,18 @@
 #include <boost/random/variate_generator.hpp>
 
 
+namespace Random
+{
+    template<typename T>
+    T sample_gauss(T mean, T var)
+    {
+        boost::random::variate_generator<boost::mt19937, boost::normal_distribution<T> > generator(
+                    boost::mt19937(time(NULL)), boost::normal_distribution<T>(mean, var));
+        return generator();
+    }
+}
+
+
 class RandomNumberGenerator
 {
 protected:
@@ -18,8 +30,8 @@ protected:
 
 
 public:
-	RandomNumberGenerator(double mean = 0.0, double var = 1.0)
-	 : generator_(boost::mt19937(time(NULL)), boost::normal_distribution<double>(mean, var))
+    RandomNumberGenerator(double mean = 0.0, double var = 1.0)
+     : generator_(boost::mt19937(time(NULL)), boost::normal_distribution<double>(mean, var))
     {
     }
 
@@ -40,11 +52,11 @@ protected:
 
 protected:
     std::vector<RandomNumberGenerator> number_generators_;
-    
+
 
 public:
-    RandomVectorGenerator(const Vector& mean, const Vector& var) 
-    {    
+    RandomVectorGenerator(const Vector& mean, const Vector& var)
+    {
         for (int row = 0; row < Dim; row++)
             number_generators_.push_back(RandomNumberGenerator(mean[row], var[row]));
     }
@@ -71,10 +83,10 @@ protected:
 public:
     RandomAngleAxisGenerator(double angle_mean, double angle_var,
                              const Eigen::Vector3d& axis_mean, const Eigen::Vector3d& axis_var)
-     : RandomVectorGenerator<3>(axis_mean, axis_var), 
+     : RandomVectorGenerator<3>(axis_mean, axis_var),
        angle_generator_(angle_mean, angle_var)
     {
-    }	
+    }
 
 
     Eigen::AngleAxisd generate_angle_axis()
@@ -84,7 +96,7 @@ public:
 };
 
 
-class RandomPoseGenerator  
+class RandomPoseGenerator
 {
 protected:
     RandomVectorGenerator<3> vector_generator_;
