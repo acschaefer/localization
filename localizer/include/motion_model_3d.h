@@ -1,18 +1,12 @@
 #ifndef MOTION_MODEL_3D_H_
 #define MOTION_MODEL_H_3D_ MOTION_MODEL_3D_H_
 
-#include <Eigen/Geometry>
-
 #include "motion_model.h"
 #include "random_generators.h"
 
 
-class MotionModel3d : public MotionModel<Eigen::Isometry2d>
+class MotionModel3d : public MotionModel
 {
-public:
-    typedef Eigen::Isometry2d RobotState;
-
-
 protected:
     std::vector<double> alpha_;
 
@@ -24,16 +18,38 @@ public:
     }
 
 
-    Eigen::Isometry2d sample(const Eigen::Isometry2d& last_pose,
-                             const Eigen::Isometry2d& movement)
+    void init(const tf::Transform& start_pose, std::vector<Particle>& particles)
     {
-        Eigen::Rotation2D<double> rotation(0.0);
+        init(start_pose, tf::Vector3(5.0, 5.0, 0.5), particles);
+    }
 
-        double last_theta   = rotation.fromRotationMatrix(last_pose.rotation()).angle();
 
-        double d_x          = movement.translation().x();
-        double d_y          = movement.translation().y();
-        double d_theta      = rotation.fromRotationMatrix(movement.rotation()).angle();
+    void init(const tf::Transform& start_pose, const tf::Vector3& max_movement,
+              std::vector<Particle>& particles)
+    {
+        UniformVectorGenerator generator(tf::Vector3(), max_movement);
+
+        for (int p = 0; p < particles.size(); p++)
+            particles[p].set_pose(
+                        tf::Transform(tf::Matrix3x3(),
+                                      start_pose.getOrigin() + generator()));
+    }
+
+
+    tf::Transform sample(const tf::Transform& last_pose,
+                         const tf::Transform& movement)
+    {
+        tfScalar last_roll, last_pitch, last_yaw;
+        tf::Matrix3x3 last_rotation(last_pose.getRotation());
+        last_rotation.getRPY(last_roll, last_pitch, last_yaw);
+        double last_theta   = last_yaw;
+
+        double d_x          = movement.getOrigin().x();
+        double d_y          = movement.getOrigin().y();
+        tfScalar d_roll, d_pitch, d_yaw;
+        tf::Matrix3x3 d_rotation(movement.getRotation());
+        d_rotation.getRPY(d_roll, d_pitch, d_yaw);
+        double d_theta      = d_yaw;
 
         double rot1         = std::atan2(d_y, d_x) - last_theta;
         double trans        = std::sqrt(d_x*d_x + d_y*d_y);
@@ -43,15 +59,22 @@ public:
         double var_trans    = alpha_[2]*trans + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
         double var_rot2     = alpha_[0]*rot2 + alpha_[1]*trans;
 
-        double rot1_noise   = rot1  - Random::sample_gauss<double>(0.0, var_rot1);
-        double trans_noise  = trans - Random::sample_gauss<double>(0.0, var_trans);
-        double rot2_noise   = rot2  - Random::sample_gauss<double>(0.0, var_rot2);
+        GaussNumberGenerator rot1_generator(0.0, var_rot1);
+        GaussNumberGenerator trans_generator(0.0, var_trans);
+        GaussNumberGenerator rot2_generator(0.0, var_rot2);
 
-        Eigen::Isometry2d pose(last_pose);
-        pose.translation().x()  += trans_noise * cos(last_theta+rot1_noise);
-        pose.translation().y()  += trans_noise * sin(last_theta+rot1_noise);
-        pose.linear() = Eigen::Rotation2D<double>(last_theta + rot1_noise + rot2_noise).matrix();
+        double rot1_noise   = rot1  - rot1_generator();
+        double trans_noise  = trans - trans_generator();
+        double rot2_noise   = rot2  - rot2_generator();
 
+        tf::Vector3 position(last_pose.getOrigin());
+        position.setX(last_pose.getOrigin().x() + trans_noise * cos(last_theta+rot1_noise));
+        position.setY(last_pose.getOrigin().y() + trans_noise * sin(last_theta+rot1_noise));
+
+        tf::Matrix3x3 orientation;
+        orientation.setRPY(last_roll, last_pitch, last_theta + rot1_noise + rot2_noise);
+
+        tf::Transform pose(orientation, position);
         return pose;
     }
 };

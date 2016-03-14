@@ -3,53 +3,48 @@
 
 #include <vector>
 
-#include <Eigen/Dense>
+#include <boost/shared_ptr.hpp>
 
 #include "particle.h"
 #include "motion_model.h"
-#include "sensor_model.h"
 
 
-template<typename MotionModelT>
 class ParticleFilter
 {
-public:
-    typedef typename MotionModelT::RobotState RobotStateT;
-
-
 protected:
-    MotionModelT motion_model_;
-    std::vector<Particle<RobotStateT> > particles_;
+    boost::shared_ptr<MotionModel> motion_model_;
+    std::vector<Particle> particles_;
 
 
 public:
-    ParticleFilter(const MotionModelT& motion_model)
+    ParticleFilter(boost::shared_ptr<MotionModel> motion_model)
      : motion_model_(motion_model)
     {
     }
 
 
-    void init(unsigned int n_particles, const RobotStateT& start_pose = RobotStateT::Identity())
+    void init(unsigned int n_particles, const tf::Transform& start_pose = tf::Transform::getIdentity())
     {
-        particles_.resize(n_particles, Particle<RobotStateT>(start_pose));
-        motion_model_.update(RobotStateT::Identity(), particles_);
+        particles_.resize(n_particles, Particle(start_pose));
+        motion_model_->init(tf::Transform::getIdentity(), particles_);
     }
 
 
-    void update_motion(const RobotStateT& movement)
+    void update_motion(const tf::Transform& movement)
     {
-        motion_model_.update(movement, particles_);
+        motion_model_->update(movement, particles_);
     }
 
 
-    RobotStateT get_mean()
+    tf::Vector3 get_mean()
     {
-        RobotStateT mean;
+        tf::Vector3 mean;
 
+        /// \todo consider the weights.
         for (int p = 0; p < particles_.size(); p++)
-            mean.translation() += particles_[p].get_pose().translation();
+            mean += particles_[p].get_pose().getOrigin();
 
-        mean.translation() /= particles_.size();
+        mean /= particles_.size();
 
         return mean;
     }

@@ -2,33 +2,34 @@
 #define MOTION_MODEL_H_ MOTION_MODEL_H_
 
 #include <vector>
-#include <Eigen/Dense>
 
 #include "particle.h"
 
 
-template<typename RobotStateT>
 class MotionModel
 {
 public:
-    typedef RobotStateT RobotState;
+    virtual void init(const tf::Transform& start_pose, std::vector<Particle>& particles)
+    {
+        for (int p = 0; p < particles.size(); p++)
+            particles[p].set_pose(start_pose);
+    }
 
 
-public:
-    void update(const RobotStateT& movement,
-                std::vector<Particle<RobotStateT> >& particles)
+    void update(const tf::Transform& movement,
+                std::vector<Particle>& particles)
     {
         for (int p = 0; p < particles.size(); p++)
         {
-            RobotStateT new_pose = sample(movement, particles[p].get_pose());
+            tf::Transform new_pose = sample(movement, particles[p].get_pose());
             particles[p].set_pose(new_pose);
         }
     }
 
 
 protected:
-    virtual RobotStateT sample(const RobotStateT& last_pose,
-                               const RobotStateT& movement)
+    virtual tf::Transform sample(const tf::Transform& last_pose,
+                                 const tf::Transform& movement)
     {
         return movement * last_pose;
     }

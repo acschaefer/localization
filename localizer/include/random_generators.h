@@ -3,124 +3,105 @@
 
 #include <vector>
 
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/random/uniform_real.hpp>
+
+#include <tf/tf.h>
 
 
-namespace Random
-{
-    template<typename T>
-    T sample_gauss(T mean, T var)
-    {
-        boost::random::variate_generator<boost::mt19937, boost::normal_distribution<T> > generator(
-                    boost::mt19937(time(NULL)), boost::normal_distribution<T>(mean, var));
-        return generator();
-    }
-}
-
-
-class RandomNumberGenerator
+class GaussNumberGenerator
 {
 protected:
     boost::random::variate_generator<boost::mt19937, boost::normal_distribution<double> > generator_;
 
 
 public:
-    RandomNumberGenerator(double mean = 0.0, double var = 1.0)
-     : generator_(boost::mt19937(time(NULL)), boost::normal_distribution<double>(mean, var))
+    GaussNumberGenerator(double mean = 0.0, double var = 1.0)
+     : generator_(boost::mt19937(), boost::normal_distribution<double>(mean, var))
     {
+        generator_.engine().seed();
     }
 
 
-    double generate_number()
+    double operator()()
     {
         return generator_();
     }
 };
 
 
-template<int Dim>
-class RandomVectorGenerator
+class UniformNumberGenerator
 {
 protected:
-    typedef Eigen::Matrix<double, Dim, 1> Vector;
-
-
-protected:
-    std::vector<RandomNumberGenerator> number_generators_;
+    boost::random::variate_generator<boost::mt19937, boost::uniform_real<double> > generator_;
 
 
 public:
-    RandomVectorGenerator(const Vector& mean, const Vector& var)
+    UniformNumberGenerator(double min = 0.0, double max = 1.0)
+        : generator_(boost::mt19937(), boost::uniform_real<double>(min, max))
     {
-        for (int row = 0; row < Dim; row++)
-            number_generators_.push_back(RandomNumberGenerator(mean[row], var[row]));
+        generator_.engine().seed();
     }
 
 
-    virtual Vector generate_vector()
+    double operator()()
     {
-        Vector vector;
+        return generator_();
+    }
+};
 
-        for (int row = 0; row < Dim; row++)
-            vector[row] = number_generators_[row].generate_number();
+
+class GaussVectorGenerator
+{
+protected:
+    std::vector<GaussNumberGenerator> number_generators_;
+
+
+public:
+    GaussVectorGenerator(const tf::Vector3& mean, const tf::Vector3& var)
+    {
+        for (int row = 0; row < 3; row++)
+            number_generators_.push_back(GaussNumberGenerator(mean[row], var[row]));
+    }
+
+
+    tf::Vector3 operator()()
+    {
+        tf::Vector3 vector;
+
+        for (int row = 0; row < 3; row++)
+            vector[row] = number_generators_[row]();
 
         return vector;
     }
 };
 
 
-class RandomAngleAxisGenerator : protected RandomVectorGenerator<3>
+class UniformVectorGenerator
 {
 protected:
-    RandomNumberGenerator angle_generator_;
+    std::vector<UniformNumberGenerator> number_generators_;
 
 
 public:
-    RandomAngleAxisGenerator(double angle_mean, double angle_var,
-                             const Eigen::Vector3d& axis_mean, const Eigen::Vector3d& axis_var)
-     : RandomVectorGenerator<3>(axis_mean, axis_var),
-       angle_generator_(angle_mean, angle_var)
+    UniformVectorGenerator(const tf::Vector3& min, const tf::Vector3& max)
     {
+        for (int row = 0; row < 3; row++)
+            number_generators_.push_back(UniformNumberGenerator(min[row], max[row]));
     }
 
 
-    Eigen::AngleAxisd generate_angle_axis()
+    tf::Vector3 operator()()
     {
-        return Eigen::AngleAxisd(angle_generator_.generate_number(), generate_vector().normalized());
-    }
-};
+        tf::Vector3 vector;
 
+        for (int row = 0; row < 3; row++)
+            vector[row] = number_generators_[row]();
 
-class RandomPoseGenerator
-{
-protected:
-    RandomVectorGenerator<3> vector_generator_;
-    RandomAngleAxisGenerator angle_axis_generator_;
-
-
-public:
-    RandomPoseGenerator(const Eigen::Vector3d& position_mean, const Eigen::Vector3d& position_var,
-                        double angle_mean, double angle_var,
-                        const Eigen::Vector3d& axis_mean, const Eigen::Vector3d& axis_var)
-     : vector_generator_(position_mean, position_var),
-       angle_axis_generator_(angle_mean, angle_var, axis_mean, axis_var)
-    {
-    }
-
-
-    Eigen::Isometry3d generate_pose()
-    {
-        return Eigen::Isometry3d().fromPositionOrientationScale(
-                        vector_generator_.generate_vector(),
-                        angle_axis_generator_.generate_angle_axis(),
-                        Eigen::Vector3d(1.0, 1.0, 1.0));
+        return vector;
     }
 };
-
 
 #endif

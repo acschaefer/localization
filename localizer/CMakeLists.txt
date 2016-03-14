@@ -6,9 +6,10 @@ project(localizer)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
 cmake_modules
+roscpp
+tf
+tf_conversions
 )
-
-find_package(Eigen REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -112,7 +113,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include ${Eigen_INCLUDE_DIRS})
+include_directories(include)
 
 ## Declare a C++ library
 #add_library(localization
@@ -126,7 +127,7 @@ include_directories(include ${Eigen_INCLUDE_DIRS})
 
 ## Declare a C++ executable
 add_executable(localizer src/localizer.cpp)
-add_executable(test_random_generator src/test_random_generator.cpp)
+#add_executable(test_random_generator src/test_random_generator.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

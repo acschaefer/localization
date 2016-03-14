@@ -1,32 +1,31 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_ PARTICLE_H_
 
-#include <Eigen/Dense>
+#include <tf/tf.h>
 
 
-template<typename RobotStateT>
 class Particle
 {
 protected:
-    RobotStateT pose_;
+    tf::Transform pose_;
     double weight_;
 
 
 public:
-    Particle(const RobotStateT& pose = RobotStateT::Identity(), double weight = 1.0)
+    Particle(const tf::Transform& pose = tf::Transform::getIdentity(), double weight = 1.0)
     {
         pose_   = pose;
         weight_ = weight;
     }
 
 
-    void set_pose(const RobotStateT& pose)
+    void set_pose(const tf::Transform& pose = tf::Transform::getIdentity())
     {
         pose_ = pose;
     }
 
 
-    RobotStateT get_pose()
+    tf::Transform& get_pose()
     {
         return pose_;
     }
