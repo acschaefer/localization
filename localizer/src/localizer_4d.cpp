@@ -52,8 +52,8 @@ int main(int argc, char** argv)
             // Choose the size of the sphere so that it represents
             // the weight of the particle.
             geometry_msgs::Vector3 marker_scale;
-            marker_scale.x = marker_scale.y = marker_scale.z
-                    = std::max(0.1, particles[i].get_weight());
+            marker_scale.x = std::max(0.15, particles[i].get_weight());
+            marker_scale.y = marker_scale.z = marker_scale.x * 0.1;
 
             // Color the particles red.
             std_msgs::ColorRGBA marker_color;
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
             marker.header.stamp       = ros::Time::now();
             marker.header.frame_id    = "map";
             marker.id                 = i;
-            marker.type               = visualization_msgs::Marker::SPHERE;
+            marker.type               = visualization_msgs::Marker::ARROW;
             marker.action             = visualization_msgs::Marker::ADD;
             marker.pose               = marker_pose;
             marker.scale              = marker_scale;
