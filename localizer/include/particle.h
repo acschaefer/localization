@@ -25,7 +25,7 @@ public:
     }
 
 
-    tf::Transform& get_pose()
+    tf::Transform get_pose() const
     {
         return pose_;
     }
@@ -37,7 +37,7 @@ public:
     }
 
 
-    double get_weight()
+    double get_weight() const
     {
         return weight_;
     }
