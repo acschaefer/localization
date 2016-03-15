@@ -13,19 +13,18 @@ int main(int argc, char** argv)
 
     boost::shared_ptr<MotionModel3d> motion_model
             = boost::shared_ptr<MotionModel3d>(new MotionModel3d());
-    std::vector<double> alpha;
-    alpha.push_back(0.4);
-    alpha.push_back(0.4);
-    alpha.push_back(0.1);
-    alpha.push_back(0.1);
+    std::vector<double> alpha(4, 0.0);
+    alpha[0] = 0.4;
+    alpha[1] = 0.4;
+    alpha[2] = 0.1;
+    alpha[3] = 0.1;
     motion_model->set_alpha(alpha);
-    motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0,
-                                         0.0, (10.0/180.0) * M_PI);
+    motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0, (10.0/180.0) * M_PI);
 
     ParticleFilter particle_filter(motion_model);
     particle_filter.init(1e4);
 
-    ros::Rate rate(1);
+    ros::Rate rate(3);
     while (ros::ok())
     {
         tf::Transform movement(tf::Transform::getIdentity());
@@ -78,6 +77,8 @@ int main(int argc, char** argv)
         particle_publisher.publish(marker_array);
 
         ros::spinOnce();
+
+        rate.sleep();
     }
 
     return 0;
