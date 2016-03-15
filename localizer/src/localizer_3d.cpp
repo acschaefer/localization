@@ -21,7 +21,8 @@ int main(int argc, char** argv)
     motion_model->set_alpha(alpha);
     motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0, (10.0/180.0) * M_PI);
 
-    ParticleFilter particle_filter(motion_model);
+    ParticleFilter particle_filter;
+    particle_filter.set_motion_model(motion_model);
     particle_filter.init(1e4);
 
     ros::Rate rate(3);

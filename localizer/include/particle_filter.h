@@ -17,9 +17,9 @@ protected:
 
 
 public:
-    ParticleFilter(boost::shared_ptr<MotionModel> motion_model)
-     : motion_model_(motion_model)
+    void set_motion_model(boost::shared_ptr<MotionModel> motion_model)
     {
+        motion_model_ = motion_model;
     }
 
 
