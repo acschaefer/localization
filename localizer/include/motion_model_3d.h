@@ -59,20 +59,32 @@ public:
         double var_trans    = alpha_[2]*trans + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
         double var_rot2     = alpha_[0]*rot2 + alpha_[1]*trans;
 
-        GaussNumberGenerator rot1_generator(0.0, var_rot1);
-        GaussNumberGenerator trans_generator(0.0, var_trans);
-        GaussNumberGenerator rot2_generator(0.0, var_rot2);
+        double rot1_noisy   = rot1;
+        double trans_noisy  = trans;
+        double rot2_noisy   = rot2;
 
-        double rot1_noise   = rot1  - rot1_generator();
-        double trans_noise  = trans - trans_generator();
-        double rot2_noise   = rot2  - rot2_generator();
+        if (var_rot1 > 0.0)
+        {
+            GaussNumberGenerator rot1_generator(0.0, var_rot1);
+            rot1_noisy      -= rot1_generator();
+        }
+        if (var_trans > 0.0)
+        {
+            GaussNumberGenerator trans_generator(0.0, var_trans);
+            trans_noisy     -= trans_generator();
+        }
+        if (var_rot2 > 0.0)
+        {
+            GaussNumberGenerator rot2_generator(0.0, var_rot2);
+            rot2_noisy      -= rot2_generator();
+        }
 
         tf::Vector3 position(last_pose.getOrigin());
-        position.setX(last_pose.getOrigin().x() + trans_noise * cos(last_theta+rot1_noise));
-        position.setY(last_pose.getOrigin().y() + trans_noise * sin(last_theta+rot1_noise));
+        position.setX(last_pose.getOrigin().x() + trans_noisy * cos(last_theta+rot1_noisy));
+        position.setY(last_pose.getOrigin().y() + trans_noisy * sin(last_theta+rot1_noisy));
 
         tf::Matrix3x3 orientation;
-        orientation.setRPY(last_roll, last_pitch, last_theta + rot1_noise + rot2_noise);
+        orientation.setRPY(last_roll, last_pitch, last_theta + rot1_noisy + rot2_noisy);
 
         tf::Transform pose(orientation, position);
         return pose;
