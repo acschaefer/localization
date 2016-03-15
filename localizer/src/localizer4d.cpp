@@ -5,8 +5,8 @@
 
 
 int main(int argc, char** argv)
-{
-    ros::init(argc, argv, "localizer");
+{/*
+    ros::init(argc, argv, "localizer3d");
     ros::NodeHandle node_handle;
     ros::Publisher particle_publisher
             = node_handle.advertise<visualization_msgs::MarkerArray>("particles", 1u);
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
             marker.pose               = marker_pose;
             marker.scale              = marker_scale;
             marker.color              = marker_color;
-            marker.lifetime           = ros::Duration();
+            marker.lifetime           = ros::Duration(10.0);
             marker.frame_locked       = true;
 
             marker_array.markers.push_back(marker);
@@ -72,6 +72,6 @@ int main(int argc, char** argv)
 
         ros::spinOnce();
     }
-
+*/
     return 0;
 }
