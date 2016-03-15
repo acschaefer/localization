@@ -10,14 +10,14 @@ class MotionModel3d : public MotionModel
 protected:
     std::vector<double> alpha_;
     tf::Transform start_pose_;
-    double var_xy_, var_z_, var_yaw_;
+    double var_xy_, var_yaw_;
 
 
 public:
     MotionModel3d()
         : alpha_(std::vector<double>(4, 1.0)),
           start_pose_(tf::Transform::getIdentity()),
-          var_xy_(1.0), var_z_(0.1), var_yaw_(0.1)
+          var_xy_(1.0), var_yaw_(0.1)
     {
     }
 
@@ -28,12 +28,11 @@ public:
     }
 
 
-    void set_start_pose(const tf::Transform& start_pose, double var_xy,
-                        double var_z, double var_yaw)
+    void set_start_pose(const tf::Transform& start_pose,
+                        double var_xy, double var_yaw)
     {
         start_pose_ = start_pose;
         var_xy_     = var_xy;
-        var_z_      = var_z;
         var_yaw_    = var_yaw;
     }
 
@@ -46,14 +45,14 @@ public:
 
         GaussNumberGenerator yaw_generator(yaw, var_yaw_);
         VectorPolarGenerator vector_generator(
-                    0.0, var_xy_, 0.0, 2.0*M_PI, var_z_);
+                    0.0, var_xy_, 0.0, 2.0*M_PI, 1.0);
 
         for (int p = 0; p < particles.size(); p++)
         {
             rotation.setRPY(0.0, 0.0, yaw_generator());
-            particles[p].set_pose(
-                tf::Transform(rotation,
-                              start_pose_.getOrigin() + vector_generator()));
+            tf::Vector3 translation(start_pose_.getOrigin() + vector_generator());
+            translation.setZ(0.0);
+            particles[p].set_pose(tf::Transform(rotation, translation));
         }
     }
 
@@ -108,8 +107,8 @@ public:
         tf::Matrix3x3 orientation;
         orientation.setRPY(last_roll, last_pitch, last_theta + rot1_noisy + rot2_noisy);
 
-        tf::Transform pose(orientation, position);
-        return pose;
+        tf::Transform new_pose(orientation, position);
+        return new_pose;
     }
 };
 
