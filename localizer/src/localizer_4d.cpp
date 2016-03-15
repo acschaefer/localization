@@ -1,24 +1,31 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include "particle_filter.h"
-#include "motion_model_3d.h"
+#include "motion_model_4d.h"
 
 
 int main(int argc, char** argv)
-{/*
-    ros::init(argc, argv, "localizer3d");
+{
+    ros::init(argc, argv, "localizer4d");
     ros::NodeHandle node_handle;
     ros::Publisher particle_publisher
             = node_handle.advertise<visualization_msgs::MarkerArray>("particles", 1u);
 
-    std::vector<double> alpha(4, 0.1);
-    boost::shared_ptr<MotionModel3d> motion_model
-            = boost::shared_ptr<MotionModel3d>(new MotionModel3d(alpha));
+    boost::shared_ptr<MotionModel4d> motion_model
+            = boost::shared_ptr<MotionModel4d>(new MotionModel4d());
+    std::vector<double> alpha(5, 0.0);
+    alpha[0] = 0.4;
+    alpha[1] = 0.4;
+    alpha[2] = 0.1;
+    alpha[3] = 0.1;
+    alpha[4] = 0.1;
+    motion_model->set_alpha(alpha);
+    motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0, 1.0, (10.0/180.0) * M_PI);
 
     ParticleFilter particle_filter(motion_model);
     particle_filter.init(1e4);
 
-    ros::Rate rate(1);
+    ros::Rate rate(3);
     while (ros::ok())
     {
         tf::Transform movement(tf::Transform::getIdentity());
@@ -71,7 +78,9 @@ int main(int argc, char** argv)
         particle_publisher.publish(marker_array);
 
         ros::spinOnce();
+
+        rate.sleep();
     }
-*/
+
     return 0;
 }

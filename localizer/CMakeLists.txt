@@ -126,8 +126,8 @@ include_directories(include)
 # add_dependencies(localization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(localizer3d src/localizer3d.cpp)
-add_executable(localizer4d src/localizer4d.cpp)
+add_executable(localizer3d src/localizer_3d.cpp)
+add_executable(localizer4d src/localizer_4d.cpp)
 #add_executable(test_random_generator src/test_random_generator.cpp)
 
 ## Add cmake target dependencies of the executable
