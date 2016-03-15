@@ -9,30 +9,52 @@ class MotionModel3d : public MotionModel
 {
 protected:
     std::vector<double> alpha_;
+    tf::Transform start_pose_;
+    double var_xy_, var_z_, var_yaw_;
 
 
 public:
-    MotionModel3d(const std::vector<double> alpha = std::vector<double>(4, 0.1))
-        : alpha_(alpha)
+    MotionModel3d()
+        : alpha_(std::vector<double>(4, 1.0)),
+          start_pose_(tf::Transform::getIdentity()),
+          var_xy_(1.0), var_z_(0.1), var_yaw_(0.1)
     {
     }
 
 
-    void init(const tf::Transform& start_pose, std::vector<Particle>& particles)
+    void set_alpha(const std::vector<double>& alpha)
     {
-        init(start_pose, tf::Vector3(5.0, 5.0, 0.5), particles);
+        alpha_ = alpha;
     }
 
 
-    void init(const tf::Transform& start_pose, const tf::Vector3& max_movement,
-              std::vector<Particle>& particles)
+    void set_start_pose(const tf::Transform& start_pose, double var_xy,
+                        double var_z, double var_yaw)
     {
-        UniformVectorGenerator generator(tf::Vector3(), max_movement);
+        start_pose_ = start_pose;
+        var_xy_     = var_xy;
+        var_z_      = var_z;
+        var_yaw_    = var_yaw;
+    }
+
+
+    void init(std::vector<Particle>& particles)
+    {
+        tf::Matrix3x3 rotation(start_pose_.getRotation());
+        double roll, pitch, yaw;
+        rotation.getRPY(roll, pitch, yaw);
+
+        GaussNumberGenerator yaw_generator(yaw, var_yaw_);
+        VectorPolarGenerator vector_generator(
+                    0.0, var_xy_, 0.0, 2.0*M_PI, var_z_);
 
         for (int p = 0; p < particles.size(); p++)
+        {
+            rotation.setRPY(0.0, 0.0, yaw_generator());
             particles[p].set_pose(
-                        tf::Transform(tf::Matrix3x3::getIdentity(),
-                                      start_pose.getOrigin() + generator()));
+                tf::Transform(rotation,
+                              start_pose_.getOrigin() + vector_generator()));
+        }
     }
 
 
@@ -66,17 +88,17 @@ public:
         if (var_rot1 > 0.0)
         {
             GaussNumberGenerator rot1_generator(0.0, var_rot1);
-            rot1_noisy      -= rot1_generator();
+            rot1_noisy -= rot1_generator();
         }
         if (var_trans > 0.0)
         {
             GaussNumberGenerator trans_generator(0.0, var_trans);
-            trans_noisy     -= trans_generator();
+            trans_noisy -= trans_generator();
         }
         if (var_rot2 > 0.0)
         {
             GaussNumberGenerator rot2_generator(0.0, var_rot2);
-            rot2_noisy      -= rot2_generator();
+            rot2_noisy -= rot2_generator();
         }
 
         tf::Vector3 position(last_pose.getOrigin());
