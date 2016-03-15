@@ -31,7 +31,7 @@ public:
 
         for (int p = 0; p < particles.size(); p++)
             particles[p].set_pose(
-                        tf::Transform(tf::Matrix3x3(),
+                        tf::Transform(tf::Matrix3x3::getIdentity(),
                                       start_pose.getOrigin() + generator()));
     }
 

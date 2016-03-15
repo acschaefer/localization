@@ -25,8 +25,8 @@ public:
 
     void init(unsigned int n_particles, const tf::Transform& start_pose = tf::Transform::getIdentity())
     {
-        particles_.resize(n_particles, Particle(start_pose));
-        motion_model_->init(tf::Transform::getIdentity(), particles_);
+        particles_.resize(n_particles, Particle());
+        motion_model_->init(start_pose, particles_);
     }
 
 
@@ -36,8 +36,16 @@ public:
     }
 
 
+    std::vector<Particle> get_particles() const
+    {
+        return particles_;
+    }
+
+
     tf::Vector3 get_mean()
     {
+        normalize_particle_weights();
+
         tf::Vector3 mean;
 
         /// \todo consider the weights.
@@ -47,6 +55,18 @@ public:
         mean /= particles_.size();
 
         return mean;
+    }
+
+
+protected:
+    void normalize_particle_weights()
+    {
+        double cum_weight = 0.0;
+        for (int p = 0; p < particles_.size(); p++)
+            cum_weight += particles_[p].get_weight();
+
+        for (int p = 0; p < particles_.size(); p++)
+            particles_[p].set_weight(particles_[p].get_weight() / cum_weight);
     }
 };
 

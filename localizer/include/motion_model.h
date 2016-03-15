@@ -21,7 +21,7 @@ public:
     {
         for (int p = 0; p < particles.size(); p++)
         {
-            tf::Transform new_pose = sample(movement, particles[p].get_pose());
+            tf::Transform new_pose = sample(particles[p].get_pose(), movement);
             particles[p].set_pose(new_pose);
         }
     }
