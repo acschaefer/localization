@@ -30,6 +30,12 @@ public:
     }
 
 
+    bool is_initialized()
+    {
+        return particles_.size() > 0;
+    }
+
+
     void update_motion(const tf::Transform& movement)
     {
         motion_model_->update(movement, particles_);
