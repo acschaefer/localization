@@ -20,7 +20,8 @@ int main(int argc, char** argv)
     alpha[3] = 0.1;
     alpha[4] = 0.1;
     motion_model->set_alpha(alpha);
-    motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0, 1.0, (10.0/180.0) * M_PI);
+    motion_model->set_start_pose(tf::Transform::getIdentity());
+    motion_model->set_start_pose_variance(5.0, 1.0, (10.0/180.0) * M_PI);
 
     ParticleFilter<MotionModel4d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
