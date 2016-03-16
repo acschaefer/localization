@@ -7,12 +7,14 @@
 
 #include "particle.h"
 #include "motion_model.h"
+#include "sensor_model.h"
 
 
 class ParticleFilter
 {
 protected:
     boost::shared_ptr<MotionModel> motion_model_;
+    boost::shared_ptr<SensorModel> sensor_model_;
     std::vector<Particle> particles_;
 
 
@@ -23,7 +25,14 @@ public:
     }
 
 
-    void init(unsigned int n_particles, const tf::Transform& start_pose = tf::Transform::getIdentity())
+    void set_sensor_model(boost::shared_ptr<SensorModel> sensor_model)
+    {
+        sensor_model_ = sensor_model;
+    }
+
+
+    void init(unsigned int n_particles,
+              const tf::Transform& start_pose = tf::Transform::getIdentity())
     {
         particles_.resize(n_particles, Particle());
         motion_model_->init(start_pose, particles_);
@@ -38,7 +47,15 @@ public:
 
     void update_motion(const tf::Transform& movement)
     {
-        motion_model_->update(movement, particles_);
+        if (is_initialized())
+            motion_model_->update(movement, particles_);
+    }
+
+
+    void integrate_measurement(const SensorModel::Measurement& measurement)
+    {
+        if (is_initialized())
+            sensor_model_->compute_weights(measurement, particles_);
     }
 
 
@@ -50,15 +67,18 @@ public:
 
     tf::Vector3 get_mean()
     {
-        normalize_particle_weights();
-
         tf::Vector3 mean;
 
-        /// \todo consider the weights.
-        for (int p = 0; p < particles_.size(); p++)
-            mean += particles_[p].get_pose().getOrigin();
+        if (is_initialized())
+        {
+            normalize_particle_weights();
 
-        mean /= particles_.size();
+            /// \todo consider the weights.
+            for (int p = 0; p < particles_.size(); p++)
+                mean += particles_[p].get_pose().getOrigin();
+
+            mean /= particles_.size();
+        }
 
         return mean;
     }
