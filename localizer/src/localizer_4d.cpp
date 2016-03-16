@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     motion_model->set_alpha(alpha);
     motion_model->set_start_pose(tf::Transform::getIdentity(), 5.0, 1.0, (10.0/180.0) * M_PI);
 
-    ParticleFilter particle_filter;
+    ParticleFilter<SensorModelExample> particle_filter;
     particle_filter.set_motion_model(motion_model);
     particle_filter.init(1e4);
 
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
         tf::Vector3 mean = particle_filter.get_mean();
         std::cout << "[" << mean[0] << "; " << mean[1] << "; " << mean[2] << "]" << std::endl;
 
-        // Do not publish if no one is listening.S
+        // Do not publish if no one is listening.
         if (particle_publisher.getNumSubscribers() < 1)
             continue;
 

@@ -4,15 +4,26 @@
 #include <particle.h>
 
 
+template<typename MeasurementT>
 class SensorModel
 {
 public:
-    typedef int Measurement;
+    typedef MeasurementT Measurement;
 
 
 public:
-    virtual void compute_weights(const Measurement& measurement,
-                                 std::vector<Particle>& particles) = 0;
+    virtual void compute_particle_weights(const MeasurementT& measurement,
+                                          std::vector<Particle>& particles) = 0;
+};
+
+
+class SensorModelExample : public SensorModel<int>
+{
+public:
+    void compute_particle_weights(const int& measurement,
+                                  std::vector<Particle>& particles)
+    {
+    }
 };
 
 

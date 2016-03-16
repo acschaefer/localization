@@ -10,11 +10,12 @@
 #include "sensor_model.h"
 
 
+template<typename SensorModelT>
 class ParticleFilter
 {
 protected:
     boost::shared_ptr<MotionModel> motion_model_;
-    boost::shared_ptr<SensorModel> sensor_model_;
+    boost::shared_ptr<SensorModelT> sensor_model_;
     std::vector<Particle> particles_;
 
 
@@ -25,7 +26,7 @@ public:
     }
 
 
-    void set_sensor_model(boost::shared_ptr<SensorModel> sensor_model)
+    void set_sensor_model(boost::shared_ptr<SensorModelT> sensor_model)
     {
         sensor_model_ = sensor_model;
     }
@@ -48,14 +49,14 @@ public:
     void update_motion(const tf::Transform& movement)
     {
         if (is_initialized())
-            motion_model_->update(movement, particles_);
+            motion_model_->compute_particle_poses(movement, particles_);
     }
 
 
-    void integrate_measurement(const SensorModel::Measurement& measurement)
+    void integrate_measurement(const typename SensorModelT::Measurement& measurement)
     {
         if (is_initialized())
-            sensor_model_->compute_weights(measurement, particles_);
+            sensor_model_->compute_particle_weights(measurement, particles_);
     }
 
 

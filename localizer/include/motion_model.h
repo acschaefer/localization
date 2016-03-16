@@ -16,20 +16,20 @@ public:
     }
 
 
-    void update(const tf::Transform& movement,
-                std::vector<Particle>& particles)
+    void compute_particle_poses(const tf::Transform& movement,
+                                std::vector<Particle>& particles)
     {
         for (int p = 0; p < particles.size(); p++)
         {
-            tf::Transform new_pose = sample(particles[p].get_pose(), movement);
+            tf::Transform new_pose = sample_pose(particles[p].get_pose(), movement);
             particles[p].set_pose(new_pose);
         }
     }
 
 
 protected:
-    virtual tf::Transform sample(const tf::Transform& last_pose,
-                                 const tf::Transform& movement)
+    virtual tf::Transform sample_pose(const tf::Transform& last_pose,
+                                      const tf::Transform& movement)
     {
         return movement * last_pose;
     }
