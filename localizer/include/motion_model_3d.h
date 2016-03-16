@@ -126,8 +126,8 @@ protected:
         double d_y          = movement.getOrigin().y();
         double d_z          = movement.getOrigin().z();
 
-        if (d_z != 0)
-            ROS_WARN("Neglecting non-zero z translation.");
+        if (std::abs(d_z) > 1.0e-3)
+            ROS_WARN_STREAM("Neglecting non-zero z-translation " << d_z << ".");
 
         // Decompose the movement into atomic movements according to the
         // motion model.
