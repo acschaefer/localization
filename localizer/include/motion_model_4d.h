@@ -50,10 +50,10 @@ public:
     }
 
 
-    tf::Transform sample(const tf::Transform& last_pose,
+    tf::Transform sample_pose(const tf::Transform& last_pose,
                          const tf::Transform& movement)
     {
-        tf::Transform new_pose = MotionModel3d::sample(last_pose, movement);
+        tf::Transform new_pose = MotionModel3d::sample_pose(last_pose, movement);
 
         GaussNumberGenerator z_generator(0.0, alpha_[4]*movement.getOrigin().length());
         tf::Vector3 translation(new_pose.getOrigin());

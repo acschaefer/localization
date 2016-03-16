@@ -66,7 +66,7 @@ public:
     void update_motion(const tf::Transform& movement)
     {
         if (is_initialized())
-            motion_model_->compute_particle_poses(movement, particles_);
+            motion_model_->move_particles(movement, particles_);
     }
 
 

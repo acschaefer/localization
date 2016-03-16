@@ -55,7 +55,7 @@ public:
     }
 
 
-    tf::Transform sample(const tf::Transform& last_pose,
+    tf::Transform sample_pose(const tf::Transform& last_pose,
                          const tf::Transform& movement)
     {
         tfScalar last_roll, last_pitch, last_yaw;
