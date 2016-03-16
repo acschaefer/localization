@@ -138,7 +138,7 @@ protected:
         // Calculate the variance of the atomic movements.
         double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*trans;
         double var_trans    = alpha_[2]*trans + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
-        double var_rot2     = alpha_[0]*rot2 + alpha_[1]*trans;
+        double var_rot2     = alpha_[0]*std::abs(rot2) + alpha_[1]*trans;
 
         // Calculate the noise.
         double rot1_noisy   = rot1;
@@ -164,10 +164,10 @@ protected:
         }
 
         // Compose the robot pose after the noisy movement.
-        tf::Vector3 position(last_pose.getOrigin());
-        position.setX(last_pose.getOrigin().x() + trans_noisy * cos(last_yaw+rot1_noisy));
-        position.setY(last_pose.getOrigin().y() + trans_noisy * sin(last_yaw+rot1_noisy));
-        position.setZ(0.0);
+        tf::Vector3 position(
+            last_pose.getOrigin().x() + trans_noisy * cos(last_yaw+rot1_noisy),
+            last_pose.getOrigin().y() + trans_noisy * sin(last_yaw+rot1_noisy),
+            0.0);
 
         tf::Matrix3x3 orientation;
         orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
