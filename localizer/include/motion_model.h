@@ -53,8 +53,7 @@ public:
 
 protected:
     /// Sample the new pose after noisy motion.
-    virtual tf::Transform sample_pose(const tf::Transform& last_pose,
-                                      const tf::Transform& movement) = 0;
+    virtual tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement) = 0;
 };
 
 

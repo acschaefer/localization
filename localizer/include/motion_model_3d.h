@@ -34,6 +34,9 @@ protected:
     /// Unit: [rad].
     double var_yaw_;
 
+    /// All positions and angles below this value are interpreted as zero.
+    static const double nonzero_limit_ = 1.0e-6;
+
 
 public:
     /// Default constructor.
@@ -77,7 +80,7 @@ protected:
         double roll, pitch, yaw;
         rotation.getRPY(roll, pitch, yaw);
 
-        if (roll != 0.0 || pitch != 0.0)
+        if (std::abs(roll) > nonzero_limit_ || std::abs(pitch) > nonzero_limit_)
         {
             ROS_WARN("Non-zero roll and/or pitch of start pose are set to zero.");
             roll = pitch = 0.0;
@@ -102,15 +105,23 @@ protected:
 
     /// Sample a robot pose based on the last robot pose, the last movement
     /// and the previously specified motion uncertainty parameters.
-    tf::Transform sample_pose(const tf::Transform& last_pose,
-                              const tf::Transform& movement)
+    /// \param[in] last_pose odometry reading before the movement.
+    /// \param[in] movement robot movement w.r.t. the robot frame.
+    tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
     {
+        if (std::abs(last_pose.getOrigin().getZ()) > nonzero_limit_)
+            ROS_WARN("Neglecting non-zero z-coordinate of last pose.");
+
+        // Transform the movement from the robot frame into the map frame.
+        movement.setOrigin((last_pose * movement).getOrigin() - last_pose.getOrigin());
+
         // Compute the last pose's Euler angles.
         tfScalar last_roll, last_pitch, last_yaw;
         tf::Matrix3x3 last_rotation(last_pose.getRotation());
         last_rotation.getRPY(last_roll, last_pitch, last_yaw);
 
-        if (last_roll != 0.0 || last_pitch != 0.0)
+        if (std::abs(last_roll) > nonzero_limit_
+                || std::abs(last_pitch) > nonzero_limit_)
             ROS_WARN("Neglecting non-zero roll and/or pitch of last pose.");
 
         // Compute the Euler angle increments.
@@ -118,7 +129,8 @@ protected:
         tf::Matrix3x3 d_rotation(movement.getRotation());
         d_rotation.getRPY(d_roll, d_pitch, d_yaw);
 
-        if (d_roll != 0.0 || d_pitch != 0.0)
+        if (std::abs(d_roll) > nonzero_limit_
+                || std::abs(d_pitch) > nonzero_limit_)
             ROS_WARN("Neglecting non-zero roll and/or pitch of movement.");
 
         // Compute the translation.
@@ -126,7 +138,7 @@ protected:
         double d_y          = movement.getOrigin().y();
         double d_z          = movement.getOrigin().z();
 
-        if (std::abs(d_z) > 1.0e-3)
+        if (std::abs(d_z) > nonzero_limit_)
             ROS_WARN_STREAM("Neglecting non-zero z-translation " << d_z << ".");
 
         // Decompose the movement into atomic movements according to the
@@ -165,10 +177,10 @@ protected:
 
         // Compose the robot pose after the noisy movement.
         tf::Vector3 position(
-            last_pose.getOrigin().x() + trans_noisy * cos(last_yaw+rot1_noisy),
-            last_pose.getOrigin().y() + trans_noisy * sin(last_yaw+rot1_noisy),
+            last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
+            last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
             0.0);
-
+        
         tf::Matrix3x3 orientation;
         orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
 

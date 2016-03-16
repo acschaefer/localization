@@ -74,6 +74,7 @@ public:
         particles_.resize(n_particles);
         motion_model_->set_start_pose(get_mean());
         motion_model_->init(particles_);
+        normalize_particle_weights();
     }
 
 

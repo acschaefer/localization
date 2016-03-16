@@ -20,17 +20,21 @@ int main(int argc, char** argv)
     alpha[3] = 0.1;
     motion_model->set_alpha(alpha);
     motion_model->set_start_pose(tf::Transform::getIdentity());
-    motion_model->set_start_pose_variance(5.0, (10.0/180.0) * M_PI);
+    motion_model->set_start_pose_variance(1.0, (3.0/180.0) * M_PI);
 
     ParticleFilter<MotionModel3d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
-    particle_filter.set_n_particles(1e4);
+    particle_filter.set_n_particles(1e2);
 
-    ros::Rate rate(3);
     while (ros::ok())
     {
-        tf::Transform movement(tf::Transform::getIdentity());
-        movement.getOrigin().setX(0.1);
+        ros::Duration(0.33).sleep();
+
+        tf::Vector3 translation(0.1, 0.0, 0.0);
+        tf::Quaternion rotation;
+        rotation.setRPY(0.0, 0.0, 0.1);
+        tf::Transform movement(rotation, translation);
+
         particle_filter.update_motion(movement);
 
         tf::Transform mean = particle_filter.get_mean();
@@ -81,8 +85,6 @@ int main(int argc, char** argv)
         particle_publisher.publish(marker_array);
 
         ros::spinOnce();
-
-        rate.sleep();
     }
 
     return 0;
