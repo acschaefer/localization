@@ -63,20 +63,17 @@ public:
     }
 
 
-    /// Scatters the particles around the start pose passed to the motion model.
-    void init(unsigned int n_particles)
-    {
-        particles_.resize(n_particles);
-        motion_model_->init(particles_);
-    }
-
-
     /// Adapts the number of particles in use.
     void set_n_particles(unsigned int n_particles)
     {
+        if (n_particles == particles_.size())
+            return;
+
         /// \todo Delete the particles with the lowest weights.
         /// \todo Add particles scattered around the current mean.
-        particles_.resize(n_particles, Particle(get_mean()));
+        particles_.resize(n_particles);
+        motion_model_->set_start_pose(get_mean());
+        motion_model_->init(particles_);
     }
 
 

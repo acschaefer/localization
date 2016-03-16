@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
     ParticleFilter<MotionModel3d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
-    particle_filter.init(1e4);
+    particle_filter.set_n_particles(1e4);
 
     ros::Rate rate(3);
     while (ros::ok())
