@@ -66,9 +66,10 @@ public:
     }
 
 
-    tf::Vector3 get_mean()
+    tf::Transform get_mean()
     {
-        tf::Vector3 mean;
+        tf::Vector3 mean_vector;
+        mean_vector.setZero();
 
         if (is_initialized())
         {
@@ -76,12 +77,15 @@ public:
 
             /// \todo consider the weights.
             for (int p = 0; p < particles_.size(); p++)
-                mean += particles_[p].get_pose().getOrigin();
+                mean_vector += particles_[p].get_pose().getOrigin();
 
-            mean /= particles_.size();
+            mean_vector /= particles_.size();
         }
 
-        return mean;
+        tf::Transform mean_pose(tf::Transform::getIdentity());
+        mean_pose.setOrigin(mean_vector);
+
+        return mean_pose;
     }
 
 

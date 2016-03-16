@@ -32,8 +32,10 @@ int main(int argc, char** argv)
         movement.getOrigin().setX(0.1);
         particle_filter.update_motion(movement);
 
-        tf::Vector3 mean = particle_filter.get_mean();
-        std::cout << "[" << mean[0] << "; " << mean[1] << "; " << mean[2] << "]" << std::endl;
+        tf::Transform mean = particle_filter.get_mean();
+        std::cout << "[" << mean.getOrigin()[0] << "; "
+                  << mean.getOrigin()[1] << "; "
+                  << mean.getOrigin()[2] << "]" << std::endl;
 
         // Do not publish if no one is listening.S
         if (particle_publisher.getNumSubscribers() < 1)
