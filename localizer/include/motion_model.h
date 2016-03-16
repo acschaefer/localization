@@ -8,11 +8,27 @@
 
 class MotionModel
 {
+protected:
+    tf::Transform start_pose_;
+
+
 public:
+    MotionModel()
+        : start_pose_(tf::Transform::getIdentity())
+    {
+    }
+
+
     virtual void init(const tf::Transform& start_pose, std::vector<Particle>& particles)
     {
         for (int p = 0; p < particles.size(); p++)
             particles[p].set_pose(start_pose);
+    }
+
+
+    void set_start_pose(const tf::Transform& start_pose)
+    {
+        start_pose_ = start_pose;
     }
 
 

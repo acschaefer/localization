@@ -9,14 +9,12 @@ class MotionModel3d : public MotionModel
 {
 protected:
     std::vector<double> alpha_;
-    tf::Transform start_pose_;
     double var_xy_, var_yaw_;
 
 
 public:
     MotionModel3d()
         : alpha_(std::vector<double>(4, 1.0)),
-          start_pose_(tf::Transform::getIdentity()),
           var_xy_(1.0), var_yaw_(0.1)
     {
     }

@@ -10,19 +10,25 @@
 #include "sensor_model.h"
 
 
-template<typename SensorModelT>
+template<typename MotionModelT, typename SensorModelT>
 class ParticleFilter
 {
 protected:
-    boost::shared_ptr<MotionModel> motion_model_;
+    boost::shared_ptr<MotionModelT> motion_model_;
     boost::shared_ptr<SensorModelT> sensor_model_;
     std::vector<Particle> particles_;
 
 
 public:
-    void set_motion_model(boost::shared_ptr<MotionModel> motion_model)
+    void set_motion_model(boost::shared_ptr<MotionModelT> motion_model)
     {
         motion_model_ = motion_model;
+    }
+
+
+    boost::shared_ptr<MotionModelT> get_motion_model()
+    {
+        return motion_model_;
     }
 
 
@@ -32,11 +38,22 @@ public:
     }
 
 
-    void init(unsigned int n_particles,
-              const tf::Transform& start_pose = tf::Transform::getIdentity())
+    boost::shared_ptr<SensorModelT> get_sensor_model()
+    {
+        return sensor_model_;
+    }
+
+
+    void init(unsigned int n_particles)
     {
         particles_.resize(n_particles, Particle());
-        motion_model_->init(start_pose, particles_);
+        motion_model_->init(particles_);
+    }
+
+
+    void set_n_particles(unsigned int n_particles)
+    {
+        particles_.resize(n_particles, Particle(get_mean()));
     }
 
 
