@@ -10,7 +10,13 @@ int main(int argc, char** argv)
 
     MapOdomTransform transform(node_handle);
 
-    ros::spin();
+    ros::Rate rate(10.0);
+    while (ros::ok())
+    {
+        transform.broadcast_transform_map_odom();
+        ros::spinOnce();
+        rate.sleep();
+    }
 
     return EXIT_SUCCESS;
 }
