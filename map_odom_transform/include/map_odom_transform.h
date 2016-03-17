@@ -19,7 +19,8 @@ public:
     MapOdomTransform(ros::NodeHandle node_handle)
         : node_handle_(node_handle)
     {
-        map_odom_transform_.header.stamp = ros::Time();
+        map_odom_transform_.header.frame_id = "map";
+        map_odom_transform_.child_frame_id  = "odom";
 
         initial_pose_subscriber_ = node_handle_.subscribe(
                     "initialpose", 10, &MapOdomTransform::initial_pose_callback, this);
@@ -28,9 +29,8 @@ public:
 
     void initial_pose_callback(const geometry_msgs::PoseWithCovarianceStamped& initial_pose)
     {
-        map_odom_transform_.header.frame_id = initial_pose.header.frame_id;
+
         map_odom_transform_.header.stamp    = initial_pose.header.stamp;
-        map_odom_transform_.child_frame_id  = "odom";
         map_odom_transform_.transform.translation.x = initial_pose.pose.pose.position.x;
         map_odom_transform_.transform.translation.y = initial_pose.pose.pose.position.y;
         map_odom_transform_.transform.translation.z = initial_pose.pose.pose.position.z;
@@ -42,9 +42,7 @@ public:
 
     void broadcast_transform_map_odom()
     {
-        if (map_odom_transform_.header.stamp <= ros::Time())
-            return;
-
+        map_odom_transform_.header.stamp = ros::Time::now();
         map_odom_transform_broadcaster_.sendTransform(map_odom_transform_);
     }
 };
