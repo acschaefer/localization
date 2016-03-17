@@ -34,9 +34,6 @@ protected:
     /// Unit: [rad].
     double var_yaw_;
 
-    /// All positions and angles below this value are interpreted as zero.
-    static const double nonzero_limit_ = 1.0e-6;
-
 
 public:
     /// Default constructor.
@@ -79,12 +76,7 @@ protected:
         tf::Matrix3x3 rotation(start_pose_.getRotation());
         double roll, pitch, yaw;
         rotation.getRPY(roll, pitch, yaw);
-
-        if (std::abs(roll) > nonzero_limit_ || std::abs(pitch) > nonzero_limit_)
-        {
-            ROS_WARN("Non-zero roll and/or pitch of start pose are set to zero.");
-            roll = pitch = 0.0;
-        }
+        roll = pitch = 0.0;
 
         // Create the Gaussian number generator for the yaw angle.
         GaussNumberGenerator yaw_generator(yaw, var_yaw_);
@@ -109,9 +101,6 @@ protected:
     /// \param[in] movement robot movement w.r.t. the robot frame.
     tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
     {
-        if (std::abs(last_pose.getOrigin().getZ()) > nonzero_limit_)
-            ROS_WARN("Neglecting non-zero z-coordinate of last pose.");
-
         // Transform the movement from the robot frame into the map frame.
         movement.setOrigin((last_pose * movement).getOrigin() - last_pose.getOrigin());
 
@@ -120,26 +109,15 @@ protected:
         tf::Matrix3x3 last_rotation(last_pose.getRotation());
         last_rotation.getRPY(last_roll, last_pitch, last_yaw);
 
-        if (std::abs(last_roll) > nonzero_limit_
-                || std::abs(last_pitch) > nonzero_limit_)
-            ROS_WARN("Neglecting non-zero roll and/or pitch of last pose.");
-
         // Compute the Euler angle increments.
         tfScalar d_roll, d_pitch, d_yaw;
         tf::Matrix3x3 d_rotation(movement.getRotation());
         d_rotation.getRPY(d_roll, d_pitch, d_yaw);
 
-        if (std::abs(d_roll) > nonzero_limit_
-                || std::abs(d_pitch) > nonzero_limit_)
-            ROS_WARN("Neglecting non-zero roll and/or pitch of movement.");
-
         // Compute the translation.
         double d_x          = movement.getOrigin().x();
         double d_y          = movement.getOrigin().y();
         double d_z          = movement.getOrigin().z();
-
-        if (std::abs(d_z) > nonzero_limit_)
-            ROS_WARN_STREAM("Neglecting non-zero z-translation " << d_z << ".");
 
         // Decompose the movement into atomic movements according to the
         // motion model.
@@ -180,7 +158,7 @@ protected:
             last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
             last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
             0.0);
-        
+
         tf::Matrix3x3 orientation;
         orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
 

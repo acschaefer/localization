@@ -25,14 +25,14 @@ int main(int argc, char** argv)
 
     ParticleFilter<MotionModel4d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
-    particle_filter.set_n_particles(1e4);
+    particle_filter.set_n_particles(1e3);
 
-    tf::Vector3 translation(0.01, 0.0, 0.0);
+    tf::Vector3 translation(0.1, 0.0, 0.0);
     tf::Quaternion rotation;
-    rotation.setRPY(0.0, 0.0, 0.01);
+    rotation.setRPY(0.0, 0.0, 0.1);
     tf::Transform movement(rotation, translation);
 
-    ros::Rate rate(20);
+    ros::Rate rate(5);
     while (ros::ok())
     {
         particle_filter.update_motion(movement);
