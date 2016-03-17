@@ -30,7 +30,7 @@ public:
     void initial_pose_callback(const geometry_msgs::PoseWithCovarianceStamped& initial_pose)
     {
 
-        map_odom_transform_.header.stamp    = initial_pose.header.stamp;
+        map_odom_transform_.header.stamp = initial_pose.header.stamp;
         map_odom_transform_.transform.translation.x = initial_pose.pose.pose.position.x;
         map_odom_transform_.transform.translation.y = initial_pose.pose.pose.position.y;
         map_odom_transform_.transform.translation.z = initial_pose.pose.pose.position.z;
