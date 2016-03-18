@@ -53,7 +53,7 @@ public:
 
 
     /// Set the robot start pose.
-    void set_start_pose(tf::Transform start_pose)
+    virtual void set_start_pose(tf::Transform start_pose)
     {
         // Make sure the pose is 3D. Set all other coordinates to 0.
         start_pose.getOrigin().setZ(0.0);
@@ -78,8 +78,9 @@ public:
     }
 
 
+protected:
     /// Caculates the weighted mean pose of all particles.
-    tf::Transform get_mean(const std::vector<Particle>& particles)
+    virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
         tf::Vector3 mean_translation = MotionModel::get_mean(particles).getOrigin();
 
@@ -105,10 +106,9 @@ public:
     }
 
 
-protected:
     /// Scatter all particles around the previously given start pose according
     /// to the given variance values.
-    void init(std::vector<Particle>& particles)
+    virtual void init(std::vector<Particle>& particles)
     {
         // Get the yaw angle of the start pose.
         tf::Matrix3x3 rotation(start_pose_.getRotation());
@@ -137,7 +137,7 @@ protected:
     /// and the previously specified motion uncertainty parameters.
     /// \param[in] last_pose odometry reading before the movement.
     /// \param[in] movement robot movement w.r.t. the robot frame.
-    tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
+    virtual tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
     {
         // Transform the movement from the robot frame into the map frame.
         movement.setOrigin((last_pose * movement).getOrigin() - last_pose.getOrigin());

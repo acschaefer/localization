@@ -95,7 +95,7 @@ public:
     }
 
 
-    /// Returns the initialized state of the filter.
+    /// Returns whether or not the filter has been initialized.
     bool is_initialized()
     {
         return initialized_;
