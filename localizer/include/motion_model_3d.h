@@ -53,8 +53,19 @@ public:
 
 
     /// Set the robot start pose.
-    void set_start_pose(const tf::Transform& start_pose)
+    void set_start_pose(tf::Transform start_pose)
     {
+        // Make sure the pose is 3D. Set all other coordinates to 0.
+        start_pose.getOrigin().setZ(0.0);
+        tf::Matrix3x3 rotation(start_pose.getRotation());
+        double roll, pitch, yaw;
+        rotation.getRPY(roll, pitch, yaw);
+        roll = pitch = 0.0;
+        rotation.setRPY(roll, pitch, yaw);
+        tf::Quaternion start_quaternion;
+        rotation.getRotation(start_quaternion);
+        start_pose.setRotation(start_quaternion);
+
         start_pose_ = start_pose;
     }
 

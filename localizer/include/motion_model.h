@@ -25,7 +25,7 @@ public:
 
 
     /// Define where to initialize the robot.
-    void set_start_pose(const tf::Transform& start_pose)
+    void set_start_pose(tf::Transform start_pose)
     {
         start_pose_ = start_pose;
     }
