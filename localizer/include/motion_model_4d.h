@@ -60,7 +60,7 @@ public:
         MotionModel3d::init(particles);
 
         // Scatter the particles along the z-axis.
-        GaussNumberGenerator z_generator(0.0, var_z_);
+        GaussNumberGenerator z_generator(start_pose_.getOrigin().z(), var_z_);
         for (int p = 0; p < particles.size(); p++)
         {
             tf::Vector3 position(particles[p].get_pose().getOrigin());
@@ -81,11 +81,9 @@ public:
 
         // Add noise to the z-coordinate.
         GaussNumberGenerator z_generator(
-                    new_pose.getOrigin().getZ(),
-                    alpha_[4]*movement.getOrigin().length());
-        tf::Vector3 new_position(new_pose.getOrigin());
-        new_position.setZ(z_generator());
-        new_pose.setOrigin(new_position);
+                    last_pose.getOrigin().getZ(),
+                    alpha_[4] * movement.getOrigin().length());
+        new_pose.getOrigin().setZ(z_generator());
 
         return new_pose;
     }
