@@ -63,6 +63,14 @@ public:
     }
 
 
+    /// Initializes the particle filter.
+    /// Scatters the particles around the given start pose.
+    void init()
+    {
+        motion_model_->init(particles_);
+    }
+
+
     /// Adapts the number of particles in use.
     void set_n_particles(unsigned int n_particles)
     {
@@ -71,9 +79,7 @@ public:
 
         /// \todo Delete the particles with the lowest weights.
         /// \todo Add particles scattered around the current mean.
-        particles_.resize(n_particles);
-        motion_model_->set_start_pose(get_mean());
-        motion_model_->init(particles_);
+        particles_.resize(n_particles, Particle(get_mean()));
         normalize_particle_weights();
     }
 

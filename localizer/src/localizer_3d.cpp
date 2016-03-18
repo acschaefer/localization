@@ -25,6 +25,7 @@ int main(int argc, char** argv)
     ParticleFilter<MotionModel3d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
     particle_filter.set_n_particles(1e3);
+    particle_filter.init();
 
     tf::Vector3 translation(0.1, 0.0, 0.0);
     tf::Quaternion rotation;
