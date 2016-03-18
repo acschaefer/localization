@@ -33,8 +33,18 @@ protected:
     /// in the sensor integration step.
     boost::shared_ptr<SensorModelT> sensor_model_;
 
+    /// Indicates whether the particle filter has been initialized.
+    bool initialized_;
+
 
 public:
+    /// Default constructor.
+    ParticleFilter()
+        : initialized_(false)
+    {
+    }
+
+
     /// Sets the motion model.
     void set_motion_model(boost::shared_ptr<MotionModelT> motion_model)
     {
@@ -68,6 +78,7 @@ public:
     void init()
     {
         motion_model_->init(particles_);
+        initialized_ = true;
     }
 
 
@@ -87,7 +98,7 @@ public:
     /// Returns the initialized state of the filter.
     bool is_initialized()
     {
-        return particles_.size() > 0;
+        return initialized_;
     }
 
 
