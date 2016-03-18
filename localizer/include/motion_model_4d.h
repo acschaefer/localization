@@ -71,7 +71,6 @@ public:
         }
     }
 
-
     /// Sample a robot pose based on the last robot pose, the last movement
     /// and the previously specified motion uncertainty parameters.
     tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)

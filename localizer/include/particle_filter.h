@@ -16,6 +16,9 @@
 // Sensor model base class.
 #include "sensor_model.h"
 
+// Random number generators.
+#include "random_generators.h"
+
 
 /// Partile filter for robot localization.
 template<typename MotionModelT, typename SensorModelT>
@@ -116,7 +119,46 @@ public:
     void integrate_measurement(const typename SensorModelT::Measurement& measurement)
     {
         if (is_initialized())
+        {
             sensor_model_->compute_particle_weights(measurement, particles_);
+            resample();
+        }
+    }
+
+
+    /// Resample the particles according to their weights.
+    /// This algorithm is the low variance sampler taken from the book
+    /// "Probabilistic Robotics" by Thrun et al.
+    void resample()
+    {
+        if (particles_.size() < 1)
+            return;
+
+        std::vector<Particle> resampled_particles;
+
+        int M = particles_.size();
+
+        UniformNumberGenerator generator(0.0, 1.0/M);
+        double r = generator();
+
+        double c = particles_[0].get_weight();
+
+        int i = 1;
+
+        for (int m = 1; m <= M; m++)
+        {
+            double U = r + (m-1)*(1.0/M);
+
+            while (U > c)
+            {
+                i =+ 1;
+                c += particles_[i-1].get_weight();
+            }
+
+            resampled_particles.push_back(particles_[i-1]);
+        }
+
+        particles_ = resampled_particles;
     }
 
 
