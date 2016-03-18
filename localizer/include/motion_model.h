@@ -24,7 +24,7 @@ public:
     }
 
 
-    /// Define where to initialize the robot.
+    /// Defines where to initialize the robot.
     void set_start_pose(tf::Transform start_pose)
     {
         start_pose_ = start_pose;
@@ -39,7 +39,7 @@ public:
     }
 
 
-    /// Apply noisy motion to all particles.
+    /// Applies noisy motion to all particles.
     void move_particles(const tf::Transform& movement,
                                 std::vector<Particle>& particles)
     {
@@ -48,6 +48,22 @@ public:
             tf::Transform new_pose = sample_pose(particles[p].get_pose(), movement);
             particles[p].set_pose(new_pose);
         }
+    }
+
+
+    /// Caculates the weighted mean pose of all particles.
+    virtual tf::Transform get_mean(const std::vector<Particle>& particles)
+    {
+        tf::Vector3 mean_vector;
+        mean_vector.setZero();
+
+        for (int p = 0; p < particles.size(); p++)
+            mean_vector += particles[p].get_pose().getOrigin() * particles[p].get_weight();
+
+        tf::Transform mean_pose(tf::Transform::getIdentity());
+        mean_pose.setOrigin(mean_vector);
+
+        return mean_pose;
     }
 
 

@@ -78,6 +78,33 @@ public:
     }
 
 
+    /// Caculates the weighted mean pose of all particles.
+    tf::Transform get_mean(const std::vector<Particle>& particles)
+    {
+        tf::Vector3 mean_translation = MotionModel::get_mean(particles).getOrigin();
+
+        double sum_sin_yaw, sum_cos_yaw;
+        sum_sin_yaw = sum_cos_yaw = 0.0;
+        for (int p = 0; p < particles.size(); p++)
+        {
+            tf::Matrix3x3 rotation(particles[p].get_pose().getRotation());
+            double roll, pitch, yaw;
+            rotation.getRPY(roll, pitch, yaw);
+
+            sum_sin_yaw += std::sin(yaw) * particles[p].get_weight();
+            sum_cos_yaw += std::cos(yaw) * particles[p].get_weight();
+        }
+
+        double mean_yaw = std::atan2(sum_sin_yaw, sum_cos_yaw);
+
+        tf::Matrix3x3 mean_rotation;
+        mean_rotation.setRPY(0.0, 0.0, mean_yaw);
+
+        tf::Transform mean_pose(mean_rotation, mean_translation);
+        return mean_pose;
+    }
+
+
 protected:
     /// Scatter all particles around the previously given start pose according
     /// to the given variance values.

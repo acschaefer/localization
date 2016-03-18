@@ -128,24 +128,10 @@ public:
 
 
     /// Computes the weighted mean position of all particles.
-    /// \note The returned orientation is always equal to identity.
     tf::Transform get_mean()
     {
-        tf::Vector3 mean_vector;
-        mean_vector.setZero();
-
-        if (is_initialized())
-        {
-            normalize_particle_weights();
-
-            for (int p = 0; p < particles_.size(); p++)
-                mean_vector += particles_[p].get_pose().getOrigin() * particles_[p].get_weight();
-        }
-
-        tf::Transform mean_pose(tf::Transform::getIdentity());
-        mean_pose.setOrigin(mean_vector);
-
-        return mean_pose;
+        normalize_particle_weights();
+        return motion_model_->get_mean(particles_);
     }
 
 
