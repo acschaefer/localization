@@ -131,11 +131,14 @@ public:
     /// "Probabilistic Robotics" by Thrun et al.
     void resample()
     {
-        // This algorithm assumes the particle weights are normalized.
-        normalize_particle_weights();
+        if (!is_initialized())
+            return;
 
         if (particles_.size() < 1)
             return;
+
+        // This algorithm assumes the particle weights are normalized.
+        normalize_particle_weights();
 
         std::vector<Particle> resampled_particles;
 
@@ -162,6 +165,10 @@ public:
         }
 
         particles_ = resampled_particles;
+
+        // Set all particle weights to the same value.
+        for (int p = 0; p < particles_.size(); p++)
+            particles_[p].weight = 1.0 / M;
     }
 
 
@@ -184,7 +191,7 @@ protected:
     /// Normalizes the particle weights so they sum up to 1.
     void normalize_particle_weights()
     {
-        // Shift particle weights so the minimum weigt is 0.
+        // Shift particle weights so the minimum weight is 0.
         double min_weight = 0.0;
         for (int p = 0; p < particles_.size(); p++)
             min_weight = std::min(particles_[p].weight, min_weight);
@@ -199,7 +206,12 @@ protected:
 
         // Divide the weight of each particle by the total weight.
         for (int p = 0; p < particles_.size(); p++)
-            particles_[p].weight = particles_[p].weight / total_weight;
+        {
+            if (total_weight == 0.0)
+                particles_[p].weight = 1.0 / particles_.size();
+            else
+                particles_[p].weight /= total_weight;
+        }
     }
 };
 
