@@ -34,25 +34,32 @@ protected:
     /// Unit: [rad].
     double var_yaw_;
 
+    /// Translation threshold.
+    /// Translations less than this threshold are interpreted as odometry noise.
+    /// This threshold is necessary as translation noise, especially with high
+    /// x-y covariance, can induce large -- and virtual -- rotation values.
+    double translation_threshold_;
+
 
 public:
     /// Default constructor.
     /// Initializes members to default values.
     MotionModel3d()
         : alpha_(std::vector<double>(4, 1.0)),
-          var_xy_(1.0), var_yaw_(0.1)
+          var_xy_(1.0), var_yaw_(0.1),
+          translation_threshold_(1.0e-3)
     {
     }
 
 
-    /// Set the motion uncertainty parameters.
+    /// Sets the motion uncertainty parameters.
     void set_alpha(const std::vector<double>& alpha)
     {
         alpha_ = alpha;
     }
 
 
-    /// Set the robot start pose.
+    /// Sets the robot start pose.
     virtual void set_start_pose(tf::Transform start_pose)
     {
         // Make sure the pose is 3D. Set all other coordinates to 0.
@@ -70,7 +77,7 @@ public:
     }
 
 
-    /// Set the start pose variances.
+    /// Sets the start pose variances.
     void set_start_pose_variance(double var_xy, double var_yaw)
     {
         var_xy_     = var_xy;
@@ -78,8 +85,15 @@ public:
     }
 
 
+    /// Sets the translation threshold.
+    void set_translation_threshold(double threshold)
+    {
+        translation_threshold_ = std::max(0.0, threshold);
+    }
+
+
 protected:
-    /// Caculates the weighted mean pose of all particles.
+    /// Calculates the weighted mean pose of all particles.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
         tf::Vector3 mean_translation = MotionModel::get_mean(particles).getOrigin();
@@ -153,15 +167,18 @@ protected:
         d_rotation.getRPY(d_roll, d_pitch, d_yaw);
 
         // Compute the translation.
-        double d_x          = movement.getOrigin().x();
-        double d_y          = movement.getOrigin().y();
-        double d_z          = movement.getOrigin().z();
+        double d_x = movement.getOrigin().x();
+        double d_y = movement.getOrigin().y();
+        double d_z = movement.getOrigin().z();
 
         // Decompose the movement into atomic movements according to the
-        // motion model.
-        double rot1         = std::atan2(d_y, d_x) - last_yaw;
-        double trans        = std::sqrt(d_x*d_x + d_y*d_y);
-        double rot2         = d_yaw - rot1;
+        // motion model. If the translation does not exceed the treshold,
+        // set the first rotation to 0.
+        double trans = std::sqrt(d_x*d_x + d_y*d_y);
+        double rot1 = 0.0;
+        if (trans >= translation_threshold_)
+            rot1 = std::atan2(d_y, d_x) - last_yaw;
+        double rot2 = d_yaw - rot1;
 
         // Calculate the variance of the atomic movements.
         double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*trans;
