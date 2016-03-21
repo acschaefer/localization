@@ -88,12 +88,12 @@ protected:
         sum_sin_yaw = sum_cos_yaw = 0.0;
         for (int p = 0; p < particles.size(); p++)
         {
-            tf::Matrix3x3 rotation(particles[p].get_pose().getRotation());
+            tf::Matrix3x3 rotation(particles[p].pose.getRotation());
             double roll, pitch, yaw;
             rotation.getRPY(roll, pitch, yaw);
 
-            sum_sin_yaw += std::sin(yaw) * particles[p].get_weight();
-            sum_cos_yaw += std::cos(yaw) * particles[p].get_weight();
+            sum_sin_yaw += std::sin(yaw) * particles[p].weight;
+            sum_cos_yaw += std::cos(yaw) * particles[p].weight;
         }
 
         double mean_yaw = std::atan2(sum_sin_yaw, sum_cos_yaw);
@@ -128,7 +128,7 @@ protected:
             rotation.setRPY(roll, pitch, yaw_generator());
             tf::Vector3 translation(start_pose_.getOrigin() + vector_generator());
             translation.setZ(0.0);
-            particles[p].set_pose(tf::Transform(rotation, translation));
+            particles[p].pose = tf::Transform(rotation, translation);
         }
     }
 

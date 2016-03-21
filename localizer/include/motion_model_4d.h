@@ -63,11 +63,10 @@ public:
         GaussNumberGenerator z_generator(start_pose_.getOrigin().z(), var_z_);
         for (int p = 0; p < particles.size(); p++)
         {
-            tf::Vector3 position(particles[p].get_pose().getOrigin());
+            tf::Vector3 position(particles[p].pose.getOrigin());
             position.setZ(z_generator());
-            particles[p].set_pose(
-                        tf::Transform(particles[p].get_pose().getRotation(),
-                                      position));
+            particles[p].pose = tf::Transform(particles[p].pose.getRotation(),
+                                              position);
         }
     }
 

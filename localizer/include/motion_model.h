@@ -35,7 +35,7 @@ public:
     virtual void init(std::vector<Particle>& particles)
     {
         for (int p = 0; p < particles.size(); p++)
-            particles[p].set_pose(start_pose_);
+            particles[p].pose = start_pose_;
     }
 
 
@@ -43,7 +43,7 @@ public:
     void move_particles(const tf::Transform& movement, std::vector<Particle>& particles)
     {
         for (int p = 0; p < particles.size(); p++)
-            particles[p].set_pose(sample_pose(particles[p].get_pose(), movement));
+            particles[p].pose = sample_pose(particles[p].pose, movement);
     }
 
 
@@ -56,7 +56,7 @@ public:
         mean_vector.setZero();
 
         for (int p = 0; p < particles.size(); p++)
-            mean_vector += particles[p].get_pose().getOrigin() * particles[p].get_weight();
+            mean_vector += particles[p].pose.getOrigin() * particles[p].weight;
 
         tf::Transform mean_pose(tf::Transform::getIdentity());
         mean_pose.setOrigin(mean_vector);

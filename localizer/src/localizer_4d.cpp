@@ -61,7 +61,7 @@ int main(int argc, char** argv)
         for (int i = 0; i < particles.size(); i++)
         {
             geometry_msgs::Pose pose;
-            tf::poseTFToMsg(particles[i].get_pose(), pose);
+            tf::poseTFToMsg(particles[i].pose, pose);
 
             pose_array.poses.push_back(pose);
         }

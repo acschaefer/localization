@@ -131,6 +131,9 @@ public:
     /// "Probabilistic Robotics" by Thrun et al.
     void resample()
     {
+        // This algorithm assumes the particle weights are normalized.
+        normalize_particle_weights();
+
         if (particles_.size() < 1)
             return;
 
@@ -141,9 +144,9 @@ public:
         UniformNumberGenerator generator(0.0, 1.0/M);
         double r = generator();
 
-        double c = particles_[0].get_weight();
+        double c = particles_[0].weight;
 
-        int i = 1;
+        int i = 0;
 
         for (int m = 1; m <= M; m++)
         {
@@ -151,11 +154,11 @@ public:
 
             while (U > c)
             {
-                i =+ 1;
-                c += particles_[i-1].get_weight();
+                i += 1;
+                c += particles_[i].weight;
             }
 
-            resampled_particles.push_back(particles_[i-1]);
+            resampled_particles.push_back(particles_[i]);
         }
 
         particles_ = resampled_particles;
@@ -181,14 +184,22 @@ protected:
     /// Normalizes the particle weights so they sum up to 1.
     void normalize_particle_weights()
     {
+        // Shift particle weights so the minimum weigt is 0.
+        double min_weight = 0.0;
+        for (int p = 0; p < particles_.size(); p++)
+            min_weight = std::min(particles_[p].weight, min_weight);
+
+        for (int p = 0; p < particles_.size(); p++)
+            particles_[p].weight += -min_weight;
+
         // Sum up all weights.
         double total_weight = 0.0;
         for (int p = 0; p < particles_.size(); p++)
-            total_weight += particles_[p].get_weight();
+            total_weight += particles_[p].weight;
 
         // Divide the weight of each particle by the total weight.
         for (int p = 0; p < particles_.size(); p++)
-            particles_[p].set_weight(particles_[p].get_weight() / total_weight);
+            particles_[p].weight = particles_[p].weight / total_weight;
     }
 };
 
