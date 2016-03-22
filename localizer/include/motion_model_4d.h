@@ -70,20 +70,25 @@ public:
         }
     }
 
-    /// Sample a robot pose based on the last robot pose, the last movement
-    /// and the previously specified motion uncertainty parameters.
-    tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
+    /// Applies noisy motion to all particles.
+    /// Samples robot poses based on the last movement
+    /// and the given motion uncertainty parameters.
+    /// \param[in] movement robot movement w.r.t. the robot frame.
+    /// \param[in, out] particles particles to move.
+    virtual void move_particles(const tf::Transform& movement,
+                                std::vector<Particle>& particles)
     {
-        // Sample the pose in x, y, and yaw.
-        tf::Transform new_pose = MotionModel3d::sample_pose(last_pose, movement);
+        // Move the particles in x, y, and yaw.
+        MotionModel3d::move_particles(movement, particles);
 
         // Add noise to the z-coordinate.
         GaussNumberGenerator z_generator(
-                    last_pose.getOrigin().getZ(),
+                    0.0,
                     alpha_[4] * movement.getOrigin().length());
-        new_pose.getOrigin().setZ(z_generator());
 
-        return new_pose;
+        for (int p = 0; p < particles.size(); p++)
+            particles[p].pose.getOrigin()
+                    += tf::Vector3(0.0, 0.0, z_generator());
     }
 };
 

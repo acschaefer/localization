@@ -147,78 +147,83 @@ protected:
     }
 
 
-    /// Sample a robot pose based on the last robot pose, the last movement
-    /// and the previously specified motion uncertainty parameters.
-    /// \param[in] last_pose odometry reading before the movement.
+    /// Applies noisy motion to all particles.
+    /// Samples robot poses based on the last movement
+    /// and the given motion uncertainty parameters.
     /// \param[in] movement robot movement w.r.t. the robot frame.
-    virtual tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement)
+    /// \param[in, out] particles particles to move.
+    virtual void move_particles(const tf::Transform& movement,
+                                std::vector<Particle>& particles)
     {
-        // Transform the movement from the robot frame into the map frame.
-        movement.setOrigin((last_pose * movement).getOrigin() - last_pose.getOrigin());
-
-        // Compute the last pose's Euler angles.
-        tfScalar last_roll, last_pitch, last_yaw;
-        tf::Matrix3x3 last_rotation(last_pose.getRotation());
-        last_rotation.getRPY(last_roll, last_pitch, last_yaw);
-
         // Compute the Euler angle increments.
         tfScalar d_roll, d_pitch, d_yaw;
         tf::Matrix3x3 d_rotation(movement.getRotation());
         d_rotation.getRPY(d_roll, d_pitch, d_yaw);
 
-        // Compute the translation.
+        // Compute the translational increment.
         double d_x = movement.getOrigin().x();
         double d_y = movement.getOrigin().y();
         double d_z = movement.getOrigin().z();
 
         // Decompose the movement into atomic movements according to the
-        // motion model. If the translation does not exceed the treshold,
+        // motion model.
+        // If the translation does not exceed the treshold,
         // set the first rotation to 0.
         double trans = std::sqrt(d_x*d_x + d_y*d_y);
         double rot1 = 0.0;
         if (trans >= translation_threshold_)
-            rot1 = std::atan2(d_y, d_x) - last_yaw;
+            rot1 = std::atan2(d_y, d_x);
         double rot2 = d_yaw - rot1;
 
         // Calculate the variance of the atomic movements.
         double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*trans;
-        double var_trans    = alpha_[2]*trans + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
+        double var_trans    = alpha_[2]*trans
+                                + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
         double var_rot2     = alpha_[0]*std::abs(rot2) + alpha_[1]*trans;
 
-        // Calculate the noise.
-        double rot1_noisy   = rot1;
-        double trans_noisy  = trans;
-        double rot2_noisy   = rot2;
-
-        // Sample from Gaussian distributions.
-        // Avoid zero variance.
-        if (var_rot1 > 0.0)
+        // Add noise to the movement and move the particles.
+        for (int p = 0; p < particles.size(); p++)
         {
-            GaussNumberGenerator rot1_generator(0.0, var_rot1);
-            rot1_noisy -= rot1_generator();
-        }
-        if (var_trans > 0.0)
-        {
-            GaussNumberGenerator trans_generator(0.0, var_trans);
-            trans_noisy -= trans_generator();
-        }
-        if (var_rot2 > 0.0)
-        {
-            GaussNumberGenerator rot2_generator(0.0, var_rot2);
-            rot2_noisy -= rot2_generator();
-        }
+            const tf::Transform& last_pose = particles[p].pose;
 
-        // Compose the robot pose after the noisy movement.
-        tf::Vector3 position(
-            last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
-            last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
-            0.0);
+            // Compute the last pose's Euler angles.
+            tfScalar last_roll, last_pitch, last_yaw;
+            tf::Matrix3x3 last_rotation(last_pose.getRotation());
+            last_rotation.getRPY(last_roll, last_pitch, last_yaw);
 
-        tf::Matrix3x3 orientation;
-        orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
+            // Calculate the noise.
+            double rot1_noisy   = rot1;
+            double trans_noisy  = trans;
+            double rot2_noisy   = rot2;
 
-        tf::Transform new_pose(orientation, position);
-        return new_pose;
+            // Sample from Gaussian distributions.
+            // Avoid zero variance.
+            if (var_rot1 > 0.0)
+            {
+                GaussNumberGenerator rot1_generator(0.0, var_rot1);
+                rot1_noisy -= rot1_generator();
+            }
+            if (var_trans > 0.0)
+            {
+                GaussNumberGenerator trans_generator(0.0, var_trans);
+                trans_noisy -= trans_generator();
+            }
+            if (var_rot2 > 0.0)
+            {
+                GaussNumberGenerator rot2_generator(0.0, var_rot2);
+                rot2_noisy -= rot2_generator();
+            }
+
+            // Compute the robot pose after the noisy movement.
+            particles[p].pose.setOrigin(tf::Vector3(
+                last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
+                last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
+                0.0));
+
+            tf::Matrix3x3 orientation;
+            orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
+            particles[p].pose.setBasis(orientation);
+        }
     }
 };
 

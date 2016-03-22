@@ -40,11 +40,8 @@ public:
 
 
     /// Applies noisy motion to all particles.
-    void move_particles(const tf::Transform& movement, std::vector<Particle>& particles)
-    {
-        for (int p = 0; p < particles.size(); p++)
-            particles[p].pose = sample_pose(particles[p].pose, movement);
-    }
+    virtual void move_particles(const tf::Transform& movement,
+                                std::vector<Particle>& particles) = 0;
 
 
     /// Calculates the weighted mean pose of all particles.
@@ -64,11 +61,6 @@ public:
 
         return mean_pose;
     }
-
-
-protected:
-    /// Sample the new pose after noisy motion.
-    virtual tf::Transform sample_pose(const tf::Transform& last_pose, tf::Transform movement) = 0;
 };
 
 
