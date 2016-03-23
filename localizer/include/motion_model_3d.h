@@ -218,7 +218,7 @@ protected:
             particles[p].pose.setOrigin(tf::Vector3(
                 last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
                 last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
-                0.0));
+                last_pose.getOrigin().z()));
 
             tf::Matrix3x3 orientation;
             orientation.setRPY(0.0, 0.0, last_yaw + rot1_noisy + rot2_noisy);
