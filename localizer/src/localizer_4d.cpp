@@ -1,7 +1,7 @@
 #include <geometry_msgs/PoseArray.h>
 
-#include "particle_filter.h"
-#include "motion_model_4d.h"
+#include "localizer/particle_filter.h"
+#include "localizer/motion_model_4d.h"
 
 
 int main(int argc, char** argv)

@@ -2,7 +2,7 @@
 #define SENSOR_MODEL_H_ SENSOR_MODEL_H_
 
 // Particles used by the particle filter.
-#include <particle.h>
+#include <localizer/particle.h>
 
 
 /// Sensor model for use with the ParticleFilter class for robot localization.

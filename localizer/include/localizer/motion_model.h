@@ -5,7 +5,7 @@
 #include <vector>
 
 // Particles used by the particle filter.
-#include "particle.h"
+#include "localizer/particle.h"
 
 
 /// Motion model for use with the ParticleFilter class for robot localization.

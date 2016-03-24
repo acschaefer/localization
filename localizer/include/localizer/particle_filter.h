@@ -8,16 +8,16 @@
 #include <boost/shared_ptr.hpp>
 
 // Particles.
-#include "particle.h"
+#include "localizer/particle.h"
 
 // Motion model base class.
-#include "motion_model.h"
+#include "localizer/motion_model.h"
 
 // Sensor model base class.
-#include "sensor_model.h"
+#include "localizer/sensor_model.h"
 
 // Random number generators.
-#include "random_generators.h"
+#include "localizer/random_generators.h"
 
 
 /// Partile filter for robot localization.

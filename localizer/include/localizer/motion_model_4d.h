@@ -2,7 +2,7 @@
 #define MOTION_MODEL_H_4D_ MOTION_MODEL_4D_H_
 
 // Base class.
-#include "motion_model_3d.h"
+#include "localizer/motion_model_3d.h"
 
 
 /// 4D motion model for use with class ParticleFilter for robot localization.

@@ -2,10 +2,10 @@
 #define MOTION_MODEL_H_3D_ MOTION_MODEL_3D_H_
 
 // Base class.
-#include "motion_model.h"
+#include "localizer/motion_model.h"
 
 // Random number generators required for sampling.
-#include "random_generators.h"
+#include "localizer/random_generators.h"
 
 
 /// 3D motion model for use with class ParticleFilter for robot localization.
