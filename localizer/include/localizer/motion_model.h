@@ -29,6 +29,13 @@ public:
     {
         start_pose_ = start_pose;
     }
+    
+    
+    /// Returns the start pose.
+    virtual tf::Transform get_start_pose()
+    {
+        return start_pose_;
+    }
 
 
     /// Initializes the particle filter with the given number of particles.
