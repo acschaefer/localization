@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     particle_filter.set_n_particles(1e3);
     particle_filter.init();
 
-    tf::Vector3 translation(0.1, 0.0, 0.0);
+    tf::Vector3 translation(-0.1, 0.0, 0.0);
     tf::Quaternion rotation;
     rotation.setRPY(0.0, 0.0, 0.1);
     tf::Transform movement(rotation, translation);
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
                   << mean.getOrigin()[1] << "; "
                   << mean.getOrigin()[2] << "]" << std::endl;
 
-        // Do not publish if no one is listening.S
+        // Do not publish if no one is listening.
         if (particle_publisher.getNumSubscribers() < 1)
         {
             rate.sleep();

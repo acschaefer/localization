@@ -157,29 +157,35 @@ protected:
     {
         // Compute the Euler angle increments.
         tfScalar d_roll, d_pitch, d_yaw;
-        tf::Matrix3x3 d_rotation(movement.getRotation());
+        const tf::Matrix3x3 d_rotation(movement.getRotation());
         d_rotation.getRPY(d_roll, d_pitch, d_yaw);
 
         // Compute the translational increment.
-        double d_x = movement.getOrigin().x();
-        double d_y = movement.getOrigin().y();
-        double d_z = movement.getOrigin().z();
+        const double d_x = movement.getOrigin().x();
+        const double d_y = movement.getOrigin().y();
+        const double d_z = movement.getOrigin().z();
 
         // Decompose the movement into atomic movements according to the
         // motion model.
-        // If the translation does not exceed the treshold,
+        // If the translation does not exceed the threshold,
         // set the first rotation to 0.
-        double trans = std::sqrt(d_x*d_x + d_y*d_y);
+        const double sign_d_x = (d_x >= 0.0 ? 1.0 : -1.0);
+        const double trans = sign_d_x * std::sqrt(d_x*d_x + d_y*d_y);
         double rot1 = 0.0;
-        if (trans >= translation_threshold_)
-            rot1 = std::atan2(d_y, d_x);
+        if (std::abs(trans) >= translation_threshold_)
+        {
+            if (d_x == 0.0)
+                rot1 = sign_d_x * 0.5 * M_PI;
+            else
+                rot1 = std::atan(d_y / d_x);
+        }
         double rot2 = d_yaw - rot1;
 
         // Calculate the variance of the atomic movements.
-        double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*trans;
-        double var_trans    = alpha_[2]*trans
-                                + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
-        double var_rot2     = alpha_[0]*std::abs(rot2) + alpha_[1]*trans;
+        const double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*std::abs(trans);
+        const double var_trans    = alpha_[2]*std::abs(trans)
+                                      + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
+        const double var_rot2     = alpha_[0]*std::abs(rot2) + alpha_[1]*std::abs(trans);
 
         // Add noise to the movement and move the particles.
         for (int p = 0; p < particles.size(); p++)
@@ -188,7 +194,7 @@ protected:
 
             // Compute the last pose's Euler angles.
             tfScalar last_roll, last_pitch, last_yaw;
-            tf::Matrix3x3 last_rotation(last_pose.getRotation());
+            const tf::Matrix3x3 last_rotation(last_pose.getRotation());
             last_rotation.getRPY(last_roll, last_pitch, last_yaw);
 
             // Calculate the noise.
@@ -214,7 +220,7 @@ protected:
                 rot2_noisy -= rot2_generator();
             }
 
-            // Compute the robot pose after the noisy movement.
+            // Compute the robot pose w.r.t. the map after the noisy movement.
             particles[p].pose.setOrigin(tf::Vector3(
                 last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
                 last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
