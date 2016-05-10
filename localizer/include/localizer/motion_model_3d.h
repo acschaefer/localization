@@ -96,7 +96,8 @@ protected:
     /// Calculates the weighted mean pose of all particles.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
-        tf::Vector3 mean_translation = MotionModel::get_mean(particles).getOrigin();
+        tf::Vector3 mean_translation 
+            = MotionModel::get_mean(particles).getOrigin();
 
         double sum_sin_yaw, sum_cos_yaw;
         sum_sin_yaw = sum_cos_yaw = 0.0;
@@ -140,7 +141,7 @@ protected:
         for (int p = 0; p < particles.size(); p++)
         {
             rotation.setRPY(roll, pitch, yaw_generator());
-            tf::Vector3 translation(start_pose_.getOrigin() + vector_generator());
+            tf::Vector3 translation(start_pose_.getOrigin()+vector_generator());
             translation.setZ(0.0);
             particles[p].pose = tf::Transform(rotation, translation);
         }
@@ -182,10 +183,12 @@ protected:
         double rot2 = d_yaw - rot1;
 
         // Calculate the variance of the atomic movements.
-        const double var_rot1     = alpha_[0]*std::abs(rot1) + alpha_[1]*std::abs(trans);
+        const double var_rot1     = alpha_[0]*std::abs(rot1) 
+                                    + alpha_[1]*std::abs(trans);
         const double var_trans    = alpha_[2]*std::abs(trans)
-                                      + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
-        const double var_rot2     = alpha_[0]*std::abs(rot2) + alpha_[1]*std::abs(trans);
+                                    + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
+        const double var_rot2     = alpha_[0]*std::abs(rot2) 
+                                    + alpha_[1]*std::abs(trans);
 
         // Add noise to the movement and move the particles.
         for (int p = 0; p < particles.size(); p++)
@@ -222,8 +225,10 @@ protected:
 
             // Compute the robot pose w.r.t. the map after the noisy movement.
             particles[p].pose.setOrigin(tf::Vector3(
-                last_pose.getOrigin().x() + trans_noisy * std::cos(last_yaw+rot1_noisy),
-                last_pose.getOrigin().y() + trans_noisy * std::sin(last_yaw+rot1_noisy),
+                last_pose.getOrigin().x() 
+                    + trans_noisy * std::cos(last_yaw+rot1_noisy),
+                last_pose.getOrigin().y() 
+                    + trans_noisy * std::sin(last_yaw+rot1_noisy),
                 last_pose.getOrigin().z()));
 
             tf::Matrix3x3 orientation;
