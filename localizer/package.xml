@@ -2,12 +2,12 @@
 <package>
   <name>localizer</name>
   <version>0.0.0</version>
-  <description>The localization package</description>
+  <description>A collection of motion and sensor models for robot localization</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="aschaef@todo.todo">aschaef</maintainer>
+  <maintainer email="aschaef@cs.uni-freiburg.de">Alexander Schaefer</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -25,7 +25,7 @@
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
   <!-- Authors do not have to be maintianers, but could be -->
   <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <!-- <author email="aschaef@cs.uni-freiburg.de">Alexander Schaefer</author> -->
 
 
   <!-- The *_depend tags are used to specify dependencies -->
