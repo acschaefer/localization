@@ -115,12 +115,26 @@ public:
 
 
     /// Computes the weights for all particles according
-    /// to the given sensor input.
+    /// to the given sensor input and resamples.
     void integrate_measurement(const typename SensorModelT::Measurement& measurement)
     {
         if (is_initialized())
         {
             sensor_model_->compute_particle_weights(measurement, particles_);
+            resample();
+        }
+    }
+
+
+    /// Computes the weights for all particles according to the multiple
+    /// sensor readings given and resamples at last.
+    void integrate_measurements(const std::vector<typename SensorModelT::Measurement>& measurements)
+    {
+        if (is_initialized())
+        {
+            for (int i = 0; i < measurements.size(); ++i)
+                sensor_model_->compute_particle_weights(measurements[i], particles_);
+
             resample();
         }
     }
