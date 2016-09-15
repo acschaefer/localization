@@ -111,14 +111,13 @@ public:
 
         // Find the maximum particle weight.
         double max_weight = std::numeric_limits<double>::min();
-        std::vector<Particle>::iterator it;
-        for (it = particles.begin(); it != particles.end(); ++it)
-            max_weight = std::max(max_weight, (*it).weight);
+        for (size_t i = 0; i < particles.size(); ++i)
+            max_weight = std::max(max_weight, particles[i].weight);
 
         // Subtract the maximum particle weight from all weights so the maximum
         // weight is 0.
-        for (it = particles.begin(); it != particles.end(); ++it)
-            it->weight -= max_weight;
+        for (size_t i = 0; i < particles.size(); ++i)
+            particles[i].weight -= max_weight;
     }
 
 
@@ -135,7 +134,7 @@ protected:
         const int particles_per_thread = std::ceil(particles.size() / float(n_threads));
         const int start_index = thread * particles_per_thread;
         const int stop_index = std::min((int)particles.size(), (thread + 1) * particles_per_thread);
-        for (int i = start_index; i < stop_index; i++)
+        for (size_t i = start_index; i < stop_index; ++i)
             compute_particle_weight(pc_robot, particles[i]);
     }
 
@@ -179,10 +178,10 @@ protected:
         std::vector<int> k_indices(1, 0);
         std::vector<float> d(1, 0.0f);
         float d_tot = 0.0f;
-        for (pcl::PointCloud<pcl::PointXYZI>::iterator p = pc_map.begin(); p != pc_map.end(); ++p)
+        for (size_t i = 0; i < pc_map.size(); ++i)
         {
             // Determine the squared distance to the nearest point.
-            kdtree_.nearestKSearch(*p, 1, k_indices, d);
+            kdtree_.nearestKSearch(pc_map[i], 1, k_indices, d);
 
             // Sum up the capped distances.
             d_tot += std::min(d_max, std::sqrt(d.front()));
