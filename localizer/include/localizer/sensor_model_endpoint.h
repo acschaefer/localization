@@ -2,7 +2,7 @@
 #define SENSOR_MODEL_PCD_H_ SENSOR_MODEL_PCD_H_
 
 // Enable or disable multithreading.
-#define MULTITHREADING false
+#define MULTITHREADING true
 
 // Standard template libraries.
 #include <vector>
@@ -178,17 +178,25 @@ protected:
         std::vector<int> k_indices(1, 0);
         std::vector<float> d(1, 0.0f);
         float d_tot = 0.0f;
+        int n_tot = 0;
         for (size_t i = 0; i < pc_map.size(); ++i)
         {
             // Determine the squared distance to the nearest point.
-            kdtree_.nearestKSearch(pc_map[i], 1, k_indices, d);
+            pcl::PointXYZI p = pc_map[i];
+            if (std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z))
+                kdtree_.nearestKSearch(pc_map[i], 1, k_indices, d);
+            else
+                continue;
 
             // Sum up the capped distances.
-            d_tot += std::min(d_max, std::sqrt(d.front()));
+            d_tot += std::min(d_max, std::sqrt(d[0]));
+
+            // Sum up the number of finite points.
+            n_tot++;
         }
 
         // Compute the mean distance.
-        float d_mean = d_tot / pc_map.size();
+        float d_mean = d_tot / n_tot;
 
         // Convert the error to a likelihood.
         particle.weight = std::max(p_min, 1.0 - d_mean/d_max);
