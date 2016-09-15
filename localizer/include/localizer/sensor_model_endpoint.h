@@ -48,8 +48,6 @@ protected:
 
 
 public:
-
-
     /// Constructor.
     /// \param[in] PCD file used as a map when weighting the particles.
     SensorModelEndpoint(pcl::PointCloud<pcl::PointXYZI>::ConstPtr map)
@@ -172,6 +170,7 @@ protected:
         // If the given point cloud is empty, return the minimum weight.
         if (pc_map.size() < 1)
         {
+            ROS_WARN_THROTTLE(1.0, "Cannot compute particle weight given empty point cloud.");
             particle.weight = p_min;
             return;
         }
@@ -183,8 +182,7 @@ protected:
         for (pcl::PointCloud<pcl::PointXYZI>::iterator p = pc_map.begin(); p != pc_map.end(); ++p)
         {
             // Determine the squared distance to the nearest point.
-            pcl::PointXYZI ppp;
-            kdtree_.nearestKSearch(ppp, 1, k_indices, d);
+            kdtree_.nearestKSearch(*p, 1, k_indices, d);
 
             // Sum up the capped distances.
             d_tot += std::min(d_max, std::sqrt(d.front()));
