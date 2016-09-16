@@ -31,13 +31,15 @@
 
 /// Determines the weight of a particle by comparing a given point cloud to a point cloud map using the
 /// endpoint model.
-class SensorModelEndpoint : public SensorModel<pcl::PointCloud<pcl::PointXYZI>::Ptr>
+class SensorModelEndpoint : public SensorModel<std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> >
 {
 protected:
-    typedef pcl::PointCloud<pcl::PointXYZI> Pc;
+    typedef pcl::PointCloud<pcl::PointXYZI> PcXyzi;
+    typedef std::vector<PcXyzi::Ptr> Pcv;
 
 
 protected:
+    /// 3D tree for computing the distances between points.
     pcl::KdTreeFLANN<pcl::PointXYZI> kdtree_;
 
     /// Resolution used for sparsifying the incoming point clouds.
@@ -50,7 +52,7 @@ protected:
 public:
     /// Constructor.
     /// \param[in] PCD file used as a map when weighting the particles.
-    SensorModelEndpoint(pcl::PointCloud<pcl::PointXYZI>::ConstPtr map)
+    SensorModelEndpoint(PcXyzi::ConstPtr map)
         : res_(0.1)
     {
         kdtree_.setInputCloud(map);
@@ -62,25 +64,24 @@ public:
     {
         // Make sure the resolution is not higher than allowed.
         if (resolution < min_resolution)
-            ROS_WARN_STREAM("Sparsification resolution must not be less than "
-                            << min_resolution << ".");
+            ROS_WARN_STREAM("Sparsification resolution must not be less than " << min_resolution << ".");
 
         res_ = std::max(min_resolution, resolution);
     }
 
 
-    /// Computes the weights of all particles based on the given scan.
-    /// \param[in] pc_robot point cloud in the robot frame of reference.
+    /// Computes the weights of all particles based on the given vector of point clouds.
+    /// \param[in] pcs_robot point clouds in the robot frame of reference.
     /// \param[in,out] particles set of particles.
-    virtual void compute_particle_weights(const Pc::Ptr& pc_robot, std::vector<Particle>& particles)
+    virtual void compute_particle_weights(const Pcv& pcs_robot, std::vector<Particle>& particles)
     {
         // If no particles or no map are given, abort.
         if (particles.size() < 1)
             return;
 
-        // Downsample the point cloud provided by the robot.
-        Pc::Ptr pc_robot_sparse = boost::make_shared<Pc>();
-        sparsify_measurement(pc_robot, pc_robot_sparse);
+        // Downsample the point clouds provided by the robot.
+        for (size_t i = 0; i < pcs_robot.size(); ++i)
+            sparsify(pcs_robot[i], pcs_robot[i]);
 
         // Compute the particle weights.
         if (MULTITHREADING)
@@ -106,7 +107,7 @@ public:
         {
             // Compute the respective weights of the particles.
             for (size_t i = 0; i < particles.size(); ++i)
-                compute_particle_weight(pc_robot_sparse, particles[i]);
+                compute_particle_weight(pcs_robot, particles[i]);
         }
 
         // Find the maximum particle weight.
@@ -127,15 +128,16 @@ protected:
     /// \param[in,out] particles vector of all particles.
     /// \param[in] pc_robot lidar point cloud in the robot frame of reference.
     /// \param[in] thread number of this thread.
-    void compute_particle_weights_thread(Pc::ConstPtr pc_robot, std::vector<Particle>& particles, int thread)
+    void compute_particle_weights_thread(const Pcv& pcs_robot, std::vector<Particle>& particles, int thread)
     {
         // Compute the weights of the individual particles.
+        // Equally distribute the particles over the available threads.
         const int n_threads = boost::thread::hardware_concurrency();
         const int particles_per_thread = std::ceil(particles.size() / float(n_threads));
         const int start_index = thread * particles_per_thread;
         const int stop_index = std::min((int)particles.size(), (thread + 1) * particles_per_thread);
         for (size_t i = start_index; i < stop_index; ++i)
-            compute_particle_weight(pc_robot, particles[i]);
+            compute_particle_weight(pcs_robot, particles[i]);
     }
 
 
@@ -144,7 +146,7 @@ protected:
     /// \c resolution_ apart from each other.
     /// \param[in] point_cloud point cloud to sparsify.
     /// \param[out] point_cloud_sparse sparsified point cloud.
-    virtual void sparsify_measurement(Pc::ConstPtr point_cloud, Pc::Ptr point_cloud_sparse)
+    virtual void sparsify(PcXyzi::ConstPtr point_cloud, PcXyzi::Ptr point_cloud_sparse)
     {
         pcl::VoxelGrid<pcl::PointXYZI> filter;
         filter.setInputCloud(point_cloud);
@@ -154,52 +156,52 @@ protected:
 
 
     /// Computes the weight of the particle according to the map.
-    /// \param[in] pc_robot lidar point cloud w.r.t. the robot frame.
+    /// \param[in] pcs_robot point clouds w.r.t. the robot frame.
     /// \param[in,out] particle particle to compute the weight of.
-    virtual void compute_particle_weight(Pc::ConstPtr pc_robot, Particle& particle)
+    virtual void compute_particle_weight(Pcv pcs_robot, Particle& particle)
     {
-        // Set parameters.
-        const double p_min = 1e-9;
-        const float d_max = 0.5f;
-
-        // Transform the sensor point cloud from the particle frame to the map frame.
-        pcl::PointCloud<pcl::PointXYZI> pc_map;
-        pcl_ros::transformPointCloud(*pc_robot, pc_map, particle.pose);
-
-        // If the given point cloud is empty, return the minimum weight.
-        if (pc_map.size() < 1)
+        // If no point clouds are given, print a warning.
+        if (pcs_robot.size() < 1)
         {
-            ROS_WARN_THROTTLE(1.0, "Cannot compute particle weight given empty point cloud.");
+            ROS_WARN_THROTTLE(1.0, "Cannot compute particle weight given no point clouds.");
             particle.weight = p_min;
             return;
         }
 
-        // Compute how well the measurement matches the map by using the point-to-point distances.
+        // Set maximum admissible distance measurement between two points.
+        const float d_max = 0.5f;
+
+        // Transform the sensor point clouds from the particle frame to the map frame.
+        Pcv pcs_map(pcs_robot.size());
+        for (size_t i = 0; i < pcs_map.size(); ++i)
+            pcl_ros::transformPointCloud(*pcs_robot[i], pcs_map[i], particle.pose);
+
+        // Compute how well the measurements match the map by computing the point-to-point distances.
         std::vector<int> k_indices(1, 0);
         std::vector<float> d(1, 0.0f);
         float d_tot = 0.0f;
         int n_tot = 0;
-        for (size_t i = 0; i < pc_map.size(); ++i)
+        for (size_t ic = 0; ic < pcs_map.size(); ++ic)
         {
-            // Determine the squared distance to the nearest point.
-            pcl::PointXYZI p = pc_map[i];
-            if (std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z))
-                kdtree_.nearestKSearch(pc_map[i], 1, k_indices, d);
-            else
-                continue;
+            for (size_t ip = 0; ip < pcs_map[ic].size(); ++ip)
+            {
+                // Determine the squared distance to the nearest point.
+                pcl::PointXYZI p = pcs_map[ic][ip];
+                if (std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z))
+                    kdtree_.nearestKSearch(pc_map[ic], 1, k_indices, d);
+                else
+                    continue;
 
-            // Sum up the capped distances.
-            d_tot += std::min(d_max, std::sqrt(d[0]));
+                // Sum up the capped distances.
+                d_tot += std::min(d_max, std::sqrt(d[0]));
 
-            // Sum up the number of finite points.
-            n_tot++;
+                // Sum up the number of finite points.
+                n_tot++;
+            }
         }
 
-        // Compute the mean distance.
-        float d_mean = d_tot / n_tot;
-
-        // Convert the error to a likelihood.
-        particle.weight = std::max(p_min, 1.0 - d_mean/d_max);
+        // Set the particle weight to the mean distance.
+        particle.weight = d_tot / n_tot;
     }
 };
 
