@@ -126,13 +126,12 @@ public:
     }
 
 
-    /// Computes the weights for all particles according to the multiple
-    /// sensor readings given and resamples at last.
+    /// Computes the weights of all particles from multiple sensor readings and resamples them.
     void integrate_measurements(const std::vector<typename SensorModelT::Measurement>& measurements)
     {
         if (is_initialized())
         {
-            for (int i = 0; i < measurements.size(); ++i)
+            for (size_t i = 0; i < measurements.size(); ++i)
                 sensor_model_->compute_particle_weights(measurements[i], particles_);
 
             resample();
@@ -142,7 +141,7 @@ public:
 
     /// Resample the particles according to their weights.
     /// This algorithm is the low variance sampler taken from the book
-    /// "Probabilistic Robotics" by Thrun et al.
+    /// "Probabilistic Robotics" by Thrun et al., MIT Press, 2005.
     void resample()
     {
         if (!is_initialized())
@@ -151,7 +150,8 @@ public:
         if (particles_.size() < 1)
             return;
 
-        // This algorithm assumes the particle weights are normalized.
+        // The low variance sampling algorithm assumes the particle weights are normalized,
+        // so normalize them.
         normalize_particle_weights();
 
         std::vector<Particle> resampled_particles;
@@ -180,7 +180,7 @@ public:
 
         particles_ = resampled_particles;
 
-        // Set all particle weights to the same value.
+        // Set the particle weights to a uniform distribution.
         for (int p = 0; p < particles_.size(); p++)
             particles_[p].weight = 1.0 / M;
     }
@@ -203,23 +203,16 @@ public:
 
 protected:
     /// Normalizes the particle weights so they sum up to 1.
+    /// \pre All weights are zero or positive.
     void normalize_particle_weights()
     {
-        // Shift particle weights so the minimum weight is 0.
-        double min_weight = 0.0;
-        for (int p = 0; p < particles_.size(); p++)
-            min_weight = std::min(particles_[p].weight, min_weight);
-
-        for (int p = 0; p < particles_.size(); p++)
-            particles_[p].weight += -min_weight;
-
         // Sum up all weights.
         double total_weight = 0.0;
-        for (int p = 0; p < particles_.size(); p++)
+        for (size_t p = 0; p < particles_.size(); ++p)
             total_weight += particles_[p].weight;
 
         // Divide the weight of each particle by the total weight.
-        for (int p = 0; p < particles_.size(); p++)
+        for (size_t p = 0; p < particles_.size(); ++p)
         {
             if (total_weight == 0.0)
                 particles_[p].weight = 1.0 / particles_.size();
