@@ -1,5 +1,5 @@
 #ifndef MOTION_MODEL_4D_H_
-#define MOTION_MODEL_H_4D_ MOTION_MODEL_4D_H_
+#define MOTION_MODEL_4D_H_ MOTION_MODEL_4D_H_
 
 // Base class.
 #include "localizer/motion_model_3d.h"

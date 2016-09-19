@@ -1,7 +1,7 @@
 #ifndef MOTION_MODEL_H_
 #define MOTION_MODEL_H_ MOTION_MODEL_H_
 
-/// Standard template library.
+/// Standard library.
 #include <vector>
 
 // Particles used by the particle filter.
@@ -29,8 +29,8 @@ public:
     {
         start_pose_ = start_pose;
     }
-    
-    
+
+
     /// Returns the start pose.
     virtual tf::Transform get_start_pose()
     {

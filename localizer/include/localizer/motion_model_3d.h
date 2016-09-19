@@ -1,5 +1,5 @@
 #ifndef MOTION_MODEL_3D_H_
-#define MOTION_MODEL_H_3D_ MOTION_MODEL_3D_H_
+#define MOTION_MODEL_3D_H_ MOTION_MODEL_3D_H_
 
 // Base class.
 #include "localizer/motion_model.h"
@@ -96,7 +96,7 @@ protected:
     /// Calculates the weighted mean pose of all particles.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
-        tf::Vector3 mean_translation 
+        tf::Vector3 mean_translation
             = MotionModel::get_mean(particles).getOrigin();
 
         double sum_sin_yaw, sum_cos_yaw;
@@ -183,11 +183,11 @@ protected:
         double rot2 = d_yaw - rot1;
 
         // Calculate the variance of the atomic movements.
-        const double var_rot1     = alpha_[0]*std::abs(rot1) 
+        const double var_rot1     = alpha_[0]*std::abs(rot1)
                                     + alpha_[1]*std::abs(trans);
         const double var_trans    = alpha_[2]*std::abs(trans)
                                     + alpha_[3]*(std::abs(rot1)+std::abs(rot2));
-        const double var_rot2     = alpha_[0]*std::abs(rot2) 
+        const double var_rot2     = alpha_[0]*std::abs(rot2)
                                     + alpha_[1]*std::abs(trans);
 
         // Add noise to the movement and move the particles.
@@ -225,9 +225,9 @@ protected:
 
             // Compute the robot pose w.r.t. the map after the noisy movement.
             particles[p].pose.setOrigin(tf::Vector3(
-                last_pose.getOrigin().x() 
+                last_pose.getOrigin().x()
                     + trans_noisy * std::cos(last_yaw+rot1_noisy),
-                last_pose.getOrigin().y() 
+                last_pose.getOrigin().y()
                     + trans_noisy * std::sin(last_yaw+rot1_noisy),
                 last_pose.getOrigin().z()));
 
