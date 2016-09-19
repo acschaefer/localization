@@ -4,6 +4,9 @@
 // Enable/disable multithreading.
 #define MULTITHREADING true
 
+// Enable/disable saving PCD files for debugging.
+#define SAVE_PCD true
+
 // Standard library.
 #include <vector>
 
@@ -47,6 +50,12 @@ public:
         : res_(min_res)
     {
         kdtree_.setInputCloud(map);
+
+        if (SAVE_PCD)
+        {
+            pcl::io::savePCDFileASCII("map.pcd", *map);
+            ROS_DEBUG("Saved \"map.pcd\".");
+        }
     }
 
 
@@ -162,6 +171,16 @@ protected:
 
         // Set the particle weight to the mean distance.
         particle.weight = d_tot / n_tot;
+
+        // Save the point clouds for debugging reasons.
+        if (SAVE_PCD)
+        {
+            std::stringstream filename;
+            ros::Time now(ros::Time::now());
+            filename << now.sec << now.nsec << ".pcd";
+            pcl::io::savePCDFileASCII(filename.str(), pc_map);
+            ROS_DEBUG_STREAM("Saved \"" << filename.str() << "\".");
+        }
     }
 };
 
