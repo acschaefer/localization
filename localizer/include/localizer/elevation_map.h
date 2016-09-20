@@ -8,9 +8,6 @@
 // Point Cloud Library.
 #include <pcl/point_cloud.h>
 
-// ROS.
-#include <ros/console.h>
-
 
 /// Converts a PCL point cloud into a 2D elevation map.
 template<typename PointType>
@@ -74,7 +71,35 @@ public:
     }
     
     
+    /// Returns the map value correspoding to the given point.
+    double elevation(const PointT& point)
+    {
+        size_t ix, iy;
+        if (get_tile(point, ix, iy))
+            return elevation(ix, iy);
+        else
+            return std::numeric_limits<double>::quiet_NaN();
+    }
+    
+    
+    /// Returns the value of the map tile with the given index.
+    double elevation(size_t ix, size_t iy)
+    {
+        if (check(ix, iy))
+            return map_[ix][iy];
+        else
+            return std::numeric_limits<double>::quiet_NaN();
+    }
+    
+    
 protected:
+    /// Checks if the given map tile indices are valid.
+    bool check(size_t ix, size_t, iy)
+    {
+        return 0 <= ix_tmp && ix_tmp < map_.size() 
+            && 0 <= iy_tmp && iy_tmp < map_[0].size();
+    }
+
     /// Returns the index of the tile where the given point resides.
     /// If the point lies outside the map, this method returns \c false.
     bool get_tile(const PointT& point, size_t& ix, size_t& iy)
@@ -82,7 +107,7 @@ protected:
         int ix_tmp = std::floor((p.x - x_min_) / resolution_);
         int iy_tmp = std::floor((p.y - y_min_) / resolution_);
         
-        if (0 <= ix_tmp && ix_tmp < map_.size() && 0 <= iy_tmp && iy_tmp < map_[0].size())
+        if (check(ix_tmp, iy_tmp))
         {
             ix = ix_tmp;
             iy = iy_tmp;
