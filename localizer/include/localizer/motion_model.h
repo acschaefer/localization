@@ -53,7 +53,7 @@ public:
 
     /// Calculates the weighted mean pose of all particles.
     /// \return mean pose of all particles.
-    /// \note Precondition: the particle weights are already normalized.
+    /// \pre The particle weights are normalized.
     /// \note The returned mean pose's rotation is always identity.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
