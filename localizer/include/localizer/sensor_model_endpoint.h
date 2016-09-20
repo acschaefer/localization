@@ -46,27 +46,21 @@ protected:
 public:
     /// Constructor.
     /// \param[in] PCD file used as a map when weighting the particles.
-    SensorModelEndpoint(pcl::PointCloud<pcl::PointXYZI>::ConstPtr map)
+    SensorModelEndpoint(pcl::PointCloud<pcl::PointXYZI>::ConstPtr map, double res = min_res)
         : res_(min_res)
     {
-        kdtree_.setInputCloud(map);
+        set_sparsification_resolution(res);
+
+        // Downsample map and pass it to nearest-neighbor algorithm.
+        pcl::PointCloud<pcl::PointXYZI>::Ptr map_sparse(new pcl::PointCloud<pcl::PointXYZI>());
+        sparsify(*map, *map_sparse);
+        kdtree_.setInputCloud(map_sparse);
 
         if (SAVE_PCD)
         {
             pcl::io::savePCDFileASCII("map.pcd", *map);
             ROS_DEBUG("Saved \"map.pcd\".");
         }
-    }
-
-
-    /// Set the resolution used for sparsifying incoming lidar scans.
-    void set_sparsification_resolution(double res)
-    {
-        // Make sure the voxel edge length used for sparsification is not smaller than allowed.
-        if (res < min_res)
-            ROS_WARN_STREAM("Sparsification resolution set to minimum admissible resolution " << min_res << ".");
-
-        res_ = std::max(min_res, res);
     }
 
 
@@ -107,6 +101,17 @@ public:
 
 
 protected:
+    /// Set the resolution used for sparsifying the map and incoming lidar scans.
+    void set_sparsification_resolution(double res)
+    {
+        // Make sure the voxel edge length used for sparsification is not smaller than allowed.
+        if (res < min_res)
+            ROS_WARN_STREAM("Sparsification resolution set to minimum admissible resolution " << min_res << ".");
+
+        res_ = std::max(min_res, res);
+    }
+
+
     /// Computes the weights of a subset of particles when using multiple threads.
     /// \param[in,out] particles vector of all particles.
     /// \param[in] pc_robot lidar point cloud in the robot frame of reference.
@@ -185,7 +190,7 @@ protected:
 };
 
 
-const double SensorModelEndpoint::min_res = 1.0e-9;
+const double SensorModelEndpoint::min_res = 1.0e-3;
 
 
 #endif
