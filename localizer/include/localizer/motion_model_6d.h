@@ -57,11 +57,10 @@ public:
                                              tf::Vector3(start_variance_[3], start_variance_[4], start_variance_[5]));
         for (size_t p = 0; p < particles.size(); ++p)
         {
-            particles[p].pose.setOrigin(random_origin());
-            tf::Vector3 rotation(random_rotation());
-            tf::Quaternion quaternion;
-            quaternion.setRPY(rotation.x(), rotation.y(), rotation.z());
-            particles[p].pose.setRotation(quaternion);
+            tf::Vector3 rotation_rpy(random_rotation());
+            tf::Matrix3x3 rotation;
+            rotation.setRPY(rotation_rpy.x(), rotation_rpy.y(), rotation_rpy.z());
+            particles[p].pose = tf::Transform(rotation, random_origin());
         }
     }
 
@@ -92,8 +91,8 @@ public:
             // Generate random translation and rotation.
             tf::Vector3 translation(random_translation());
             tf::Vector3 rotation_rpy(random_rotation());
-            tf::Quaternion rotation;
-            noisy_rotation.setRPY(rotation_rpy.x(), rotation_rpy.y(), rotation_rpy.z());
+            tf::Matrix3x3 rotation;
+            rotation.setRPY(rotation_rpy.x(), rotation_rpy.y(), rotation_rpy.z());
 
             // Move the particle.
             particles[p].pose = particles[p].pose * tf::Transform(rotation, translation);
