@@ -5,7 +5,7 @@
 #define MULTITHREADING true
 
 // Enable/disable saving PCD files for debugging.
-#define SAVE_PCD true
+#define SAVE_PCD false
 
 // Standard library.
 #include <vector>
