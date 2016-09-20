@@ -174,8 +174,8 @@ protected:
             n_tot++;
         }
 
-        // Set the particle weight to the mean distance.
-        particle.weight = d_tot / n_tot;
+        // Compute the particle weight relative to the baseline.
+        particle.weight = d_max - d_tot/n_tot;
 
         // Save the point clouds for debugging reasons.
         if (SAVE_PCD)
