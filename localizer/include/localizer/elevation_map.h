@@ -42,10 +42,10 @@ public:
         double y_max = std::numeric_limits<double>::min();
         for (size_t i = 0; i < point_cloud->size(); ++i)
         {
-            x_min = std::min<double>(x_min, point_cloud[i]->x);
-            y_min = std::min<double>(y_min, point_cloud[i]->y);
-            x_max = std::max<double>(x_max, point_cloud[i]->x);
-            y_max = std::max<double>(y_max, point_cloud[i]->y);
+            x_min = std::min<double>(x_min, point_cloud->at(i)->x);
+            y_min = std::min<double>(y_min, point_cloud->at(i)->y);
+            x_max = std::max<double>(x_max, point_cloud->at(i)->x);
+            y_max = std::max<double>(y_max, point_cloud->at(i)->y);
         }
         
         // Compute the corner of the map where the x and y coordinates reach their minimum.
@@ -64,15 +64,32 @@ public:
         // Compute the elevation values.
         for (size_t i = 0; i < point_cloud->size(); ++i)
         {
-            PointT p = point_cloud[i];
-            size_t x = std::floor((p->x - x_min_) / resolution_);
-            size_t y = std::floor((p->y - y_min_) / resolution_);
+            size_t ix, iy;
+            get_tile(point_cloud->at(i), ix, iy);
+            if (std::isnan(map_[ix][iy]))
+                map_[ix][iy] = std::numeric_limits<double>::min();
             
-            if (std::isnan(map_[x][y]))
-                map_[x][y] = std::numeric_limits<double>::min();
-            
-            map_[x][y] = std::max(map_[x][y], p->z);
+            map_[x][y] = std::max(map_[ix][iy], p->z);
         }
+    }
+    
+    
+protected:
+    /// Returns the index of the tile where the given point resides.
+    /// If the point lies outside the map, this method returns \c false.
+    bool get_tile(const PointT& point, size_t& ix, size_t& iy)
+    {
+        int ix_tmp = std::floor((p.x - x_min_) / resolution_);
+        int iy_tmp = std::floor((p.y - y_min_) / resolution_);
+        
+        if (0 <= ix_tmp && ix_tmp < map_.size() && 0 <= iy_tmp && iy_tmp < map_[0].size())
+        {
+            ix = ix_tmp;
+            iy = iy_tmp;
+            return true;
+        }
+        else
+            return false;
     }
 };
 
