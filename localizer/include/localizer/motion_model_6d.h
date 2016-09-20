@@ -46,24 +46,21 @@ public:
     /// Scatter all particles around the start pose according to the variance values.
     virtual void init(std::vector<Particle>& particles)
     {
-        double x = start_pose_.getOrigin().x();
-        double y = start_pose_.getOrigin().y();
-        double z = start_pose_.getOrigin().z();
-        tf::Matrix3x3 rotation(start_pose_.getRotation());
+        const tf::Matrix3x3 rotation(start_pose_.getRotation());
         double roll, pitch, yaw;
         rotation.getRPY(roll, pitch, yaw);
 
         // Create randomly distributed start poses.
-        GaussVectorGenerator random_origin(tf::Vector3(x, y, z),
+        GaussVectorGenerator random_origin(start_pose_.getOrigin(),
                                            tf::Vector3(start_variance_[0], start_variance_[1], start_variance_[2]));
         GaussVectorGenerator random_rotation(tf::Vector3(roll, pitch, yaw),
                                              tf::Vector3(start_variance_[3], start_variance_[4], start_variance_[5]));
         for (size_t p = 0; p < particles.size(); ++p)
         {
             particles[p].pose.setOrigin(random_origin());
-            tf::Vector3 rot(random_rotation());
+            tf::Vector3 rotation(random_rotation());
             tf::Quaternion quaternion;
-            quaternion.setRPY(rot.x(), rot.y(), rot.z());
+            quaternion.setRPY(rotation.x(), rotation.y(), rotation.z());
             particles[p].pose.setRotation(quaternion);
         }
     }
