@@ -8,6 +8,9 @@
 // Point Cloud Library.
 #include <pcl/point_cloud.h>
 
+// ROS logging.
+#include <ros/console.h>
+
 
 /// Converts a PCL point cloud into a 2D elevation map.
 template<typename PointType>
@@ -17,7 +20,7 @@ protected:
     /// Map data.
     std::array<std::array<double> > map_;
     
-    /// Resolution -- edge length of the map tiles.
+    /// Edge length of the map tiles.
     double resolution_;
     
     /// Minimum x coordinate covered by the map.
@@ -89,6 +92,39 @@ public:
             return map_[ix][iy];
         else
             return std::numeric_limits<double>::quiet_NaN();
+    }
+    
+    
+    /// Computes the mean distance between two elevation maps.
+    double operator-(const ElevationMap& lhs, const ElevationMap& rhs)
+    {
+        // Check if both maps have the same resoltion.
+        if (lhs.resolution_ != rhs.resolution_)
+            ROS_ERROR("ElevationMap objects must have the same resolution to allow for comparison.");
+        
+        // Compute the total height distance between the maps.
+        double d = 0.0;
+        size_t n = 0;
+        for (size_t ix = 0; ix < lhs.map_.size(); ++ix)
+            for (size_t iy = 0; iy < lhs.map_[0].size(); ++iy)
+            {
+                // Compute the center of the map tile.
+                PointXYZ point(lhs.x_min_ + (ix+0.5)*lhs.resolution_, lhs.y_min_ + (iy+0.5)*lhs.resolution_, 0.0);
+                
+                // Check if both maps define an elevation value.
+                if (std::isnan(lsh.elevation(point) || std::isnan(rhs.elevation(point)))))
+                    continue;
+                
+                // Add the height difference to the total difference.
+                d += std::abs(lhs.elevation(point) - rhs.elevation(point));
+                n++;
+            }
+        
+        // Return the mean of the distances.
+        if (n < 1)
+            return 0.0;
+        else
+            return d / n;
     }
     
     
