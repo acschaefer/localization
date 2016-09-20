@@ -90,14 +90,13 @@ public:
         for (size_t p = 0; p < particles.size(); ++p)
         {
             // Generate random translation and rotation.
-            tf::Vector3 noisy_translation(random_translation());
-            tf::Vector3 noisy_rotation_rpy(random_rotation());
-            tf::Quaternion noisy_rotation;
-            noisy_rotation.setRPY(noisy_rotation_rpy.x(), noisy_rotation_rpy.y(), noisy_rotation_rpy.z());
-            tf::Transform noisy_movement(noisy_rotation, noisy_translation);
+            tf::Vector3 translation(random_translation());
+            tf::Vector3 rotation_rpy(random_rotation());
+            tf::Quaternion rotation;
+            noisy_rotation.setRPY(rotation_rpy.x(), rotation_rpy.y(), rotation_rpy.z());
 
             // Move the particle.
-            particles[p].pose = particles[p].pose * noisy_movement;
+            particles[p].pose = particles[p].pose * tf::Transform(rotation, translation);
         }
     }
 };
