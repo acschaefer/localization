@@ -71,30 +71,33 @@ public:
     /// \param[in, out] particles particles to move.
     virtual void move_particles(const tf::Transform& movement, std::vector<Particle>& particles)
     {
-        // Compute the translational and rotational increments.
-        Eigen::Matrix<double,6,1> increment;
+        // Compute the Euler angles of the rotation.
         tfScalar roll, pitch, yaw;
         const tf::Matrix3x3 rotation(movement.getRotation());
         rotation.getRPY(roll, pitch, yaw);
-        increment << movement.getOrigin().x(), movement.getOrigin().y(), movement.getOrigin().z(),
-                     roll, pitch, yaw;
 
         // Compute the variance of the motion increment.
+        Eigen::Matrix<double,6,1> increment;
+        increment << movement.getOrigin().x(), movement.getOrigin().y(), movement.getOrigin().z(), roll, pitch, yaw;
         Eigen::Matrix<double,6,1> variance;
         variance = covariance_ * increment;
 
         // Add noise to the motion increments.
-        GaussVectorGenerator random_translation(tf::Vector3(increment(0,0), increment(1,0), increment(2,0)),
+        GaussVectorGenerator random_translation(movement.getOrigin(),
                                                 tf::Vector3(variance(0,0), variance(1,0), variance(2,0)));
-        GaussVectorGenerator random_rotation(tf::Vector3(increment(3,0), increment(4,0), increment(5,0)),
+        GaussVectorGenerator random_rotation(tf::Vector3(roll, pitch, yaw),
                                              tf::Vector3(variance(3,0), variance(4,0), variance(5,0)));
         for (size_t p = 0; p < particles.size(); ++p)
         {
-            particles[p].pose.setOrigin(random_translation());
-            tf::Vector3 rot(random_rotation());
-            tf::Quaternion quaternion;
-            quaternion.setRPY(rot.x(), rot.y(), rot.z());
-            particles[p].pose.setRotation(quaternion);
+            // Generate random translation and rotation.
+            tf::Vector3 noisy_translation(random_translation());
+            tf::Vector3 noisy_rotation_rpy(random_rotation());
+            tf::Quaternion noisy_rotation;
+            noisy_rotation.setRPY(noisy_rotation_rpy.x(), noisy_rotation_rpy.y(), noisy_rotation_rpy.z());
+            tf::Transform noisy_movement(noisy_rotation, noisy_translation);
+
+            // Move the particle.
+            particles[p].pose = particles[p].pose * noisy_movement;
         }
     }
 };
