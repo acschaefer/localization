@@ -162,7 +162,7 @@ protected:
         for (size_t i = 0; i < pc_map.size(); ++i)
         {
             // Determine the squared distance to the nearest point.
-            if (std::isfinite(pc_map[i].x) && std::isfinite(pc_map[i].y) && std::isfinite(pc_map[i].z))
+            if (pcl::isFinite(pc_map[i]))
                 kdtree_.nearestKSearch(pc_map[i], 1, k_indices, d);
             else
                 continue;
