@@ -46,7 +46,7 @@ public:
         double y_min = std::numeric_limits<double>::max();
         double x_max = std::numeric_limits<double>::min();
         double y_max = std::numeric_limits<double>::min();
-        for (size_t i = 0; i < point_cloud->size(); ++i)
+        for (size_t i = 0; i < point_cloud.size(); ++i)
         {
             x_min = std::min<double>(x_min, point_cloud[i].x);
             y_min = std::min<double>(y_min, point_cloud[i].y);
@@ -71,20 +71,31 @@ public:
         for (size_t i = 0; i < point_cloud.size(); ++i)
         {
             size_t ix, iy;
-            get_tile(point_cloud[i], ix, iy);
+            tile(point_cloud[i], ix, iy);
             if (std::isnan(map_[ix][iy]))
                 map_[ix][iy] = std::numeric_limits<double>::min();
 
-            map_[x][y] = std::max(map_[ix][iy], p->z);
+            map_[ix][iy] = std::max<double>(map_[ix][iy], (double)point_cloud[i].z);
         }
     }
 
 
     /// Returns the map value correspoding to the given point.
-    double elevation(const PointType& point)
+    double elevation(const PointType& point) const
     {
         size_t ix, iy;
-        if (get_tile(point, ix, iy))
+        if (tile(point, ix, iy))
+            return elevation(ix, iy);
+        else
+            return std::numeric_limits<double>::quiet_NaN();
+    }
+
+
+    /// Returns the map value corresponding to the given coordinates.
+    double elevation(double x, double y) const
+    {
+        size_t ix, iy;
+        if (tile(x, y, ix, iy))
             return elevation(ix, iy);
         else
             return std::numeric_limits<double>::quiet_NaN();
@@ -92,7 +103,7 @@ public:
 
 
     /// Returns the value of the map tile with the given index.
-    double elevation(size_t ix, size_t iy)
+    double elevation(size_t ix, size_t iy) const
     {
         if (check(ix, iy))
             return map_[ix][iy];
@@ -102,40 +113,45 @@ public:
 
 
     /// Computes the mean distance between two elevation maps.
-    double diff(const ElevationMap& map, double d_max = std::numeric_limits<double>::max())
+    double diff(const ElevationMap& map, double d_max = std::numeric_limits<double>::max()) const
     {
         // Check if both maps have the same resolution.
         if (resolution_ != map.resolution_)
             ROS_ERROR("ElevationMap objects must have the same resolution to allow for comparison.");
 
         // Compute the total height distance between the maps.
-        double d = 0.0;
+        double d_total = 0.0;
         size_t n = 0;
         for (size_t ix = 0; ix < map_.size(); ++ix)
             for (size_t iy = 0; iy < map_[0].size(); ++iy)
             {
-                // Compute the center of the map tile.
-                PointXYZ point(x_min_ + (ix+0.5)*resolution_, y_min_ + (iy+0.5)*resolution_, 0.0);
+                // Compute the coordinates of the center of the map tile.
+                double x_center = x_min_ + (ix+0.5)*resolution_;
+                double y_center = y_min_ + (iy+0.5)*resolution_;
 
-                // Check if both maps define an elevation value.
-                if (std::isnan(elevation(point) || std::isnan(map.elevation(point)))))
+                // Compute the height difference between the two map tiles.
+                double d = elevation(x_center, y_center) - map.elevation(x_center, y_center);
+
+                // If the height difference is defined, add it to the total difference.
+                if (std::isnan(d))
                     continue;
-
-                // Add the height difference to the total difference.
-                d += std::min(std::abs(elevation(point) - map.elevation(point)), d_max);
-                n++;
+                else
+                {
+                    d_total += std::min(std::abs(d), d_max);
+                    n++;
+                }
             }
 
         // Return the mean of the distances.
         if (n < 1)
             return 0.0;
         else
-            return d / n;
+            return d_total / n;
     }
 
 
     /// Returns the resolution of the map.
-    double resolution()
+    double resolution() const
     {
         return resolution_;
     }
@@ -143,18 +159,26 @@ public:
 
 protected:
     /// Checks if the given map tile indices are valid.
-    bool check(size_t ix, size_t, iy)
+    bool check(size_t ix, size_t iy) const
     {
-        return 0 <= ix_tmp && ix_tmp < map_.size()
-            && 0 <= iy_tmp && iy_tmp < map_[0].size();
+        return 0 <= ix && ix < map_.size()
+            && 0 <= iy && iy < map_[0].size();
     }
 
     /// Returns the index of the tile where the given point resides.
     /// If the point lies outside the map, this method returns \c false.
-    bool get_tile(const PointT& point, size_t& ix, size_t& iy)
+    bool tile(const PointType& point, size_t& ix, size_t& iy) const
     {
-        int ix_tmp = std::floor((p.x - x_min_) / resolution_);
-        int iy_tmp = std::floor((p.y - y_min_) / resolution_);
+        return tile(point.x, point.y, ix, iy);
+    }
+
+
+    /// Returns the index of the tile where the point with the given coordinates resides.
+    /// If the point lies outside the map, this method returns \c false.
+    bool tile(double x, double y, size_t& ix, size_t& iy) const
+    {
+        int ix_tmp = std::floor((x - x_min_) / resolution_);
+        int iy_tmp = std::floor((y - y_min_) / resolution_);
 
         if (check(ix_tmp, iy_tmp))
         {
