@@ -19,22 +19,28 @@ class ElevationMap
 protected:
     /// Map data.
     std::array<std::array<double> > map_;
-    
+
     /// Edge length of the map tiles.
     double resolution_;
-    
+
+    /// Minimum admissible resolution.
+    const double resolution_min_;
+
     /// Minimum x coordinate covered by the map.
     double x_min_;
-    
+
     /// Minimum y coordinate covered by the map.
     double y_min_;
-    
+
 
 public:
     /// Constructor.
     ElevationMap(pcl::PointCloud<PointType>::ConstPtr point_cloud, double resolution = 0.1f)
-        : resolution_(resolution)
+        : resolution_min_(1.0e-3)
     {
+        // Set the resolution.
+        resolution_ = std::max(resolution_min_, resolution);
+
         // Compute the limits of the point cloud in x and y direction.
         double x_min = std::numeric_limits<double>::max();
         double y_min = std::numeric_limits<double>::max();
@@ -47,20 +53,20 @@ public:
             x_max = std::max<double>(x_max, point_cloud->at(i)->x);
             y_max = std::max<double>(y_max, point_cloud->at(i)->y);
         }
-        
+
         // Compute the corner of the map where the x and y coordinates reach their minimum.
         x_min_ = std::floor(x_min/resolution) * resolution_;
         y_min_ = std::floor(y_min/resolution) * resolution_;
-        
+
         // Compute the size of the map.
         size_t x_size = std::ceil((x_max-x_min_) / resolution_);
         size_t y_size = std::ceil((y_max-y_min_) / resolution_);
-        
+
         // Allocate the map and set all values to NaN.
         map_.resize(x_size);
         for (size_t i = 0; i < map_.size(); ++i)
             map_[i].resize(y_size, std::numeric_limits<double>::quiet_NaN());
-        
+
         // Compute the elevation values.
         for (size_t i = 0; i < point_cloud->size(); ++i)
         {
@@ -68,14 +74,14 @@ public:
             get_tile(point_cloud->at(i), ix, iy);
             if (std::isnan(map_[ix][iy]))
                 map_[ix][iy] = std::numeric_limits<double>::min();
-            
+
             map_[x][y] = std::max(map_[ix][iy], p->z);
         }
     }
-    
-    
+
+
     /// Returns the map value correspoding to the given point.
-    double elevation(const PointT& point)
+    double elevation(const PointType& point)
     {
         size_t ix, iy;
         if (get_tile(point, ix, iy))
@@ -83,8 +89,8 @@ public:
         else
             return std::numeric_limits<double>::quiet_NaN();
     }
-    
-    
+
+
     /// Returns the value of the map tile with the given index.
     double elevation(size_t ix, size_t iy)
     {
@@ -93,15 +99,15 @@ public:
         else
             return std::numeric_limits<double>::quiet_NaN();
     }
-    
-    
+
+
     /// Computes the mean distance between two elevation maps.
     double operator-(const ElevationMap& lhs, const ElevationMap& rhs)
     {
         // Check if both maps have the same resoltion.
         if (lhs.resolution_ != rhs.resolution_)
             ROS_ERROR("ElevationMap objects must have the same resolution to allow for comparison.");
-        
+
         // Compute the total height distance between the maps.
         double d = 0.0;
         size_t n = 0;
@@ -110,29 +116,29 @@ public:
             {
                 // Compute the center of the map tile.
                 PointXYZ point(lhs.x_min_ + (ix+0.5)*lhs.resolution_, lhs.y_min_ + (iy+0.5)*lhs.resolution_, 0.0);
-                
+
                 // Check if both maps define an elevation value.
                 if (std::isnan(lsh.elevation(point) || std::isnan(rhs.elevation(point)))))
                     continue;
-                
+
                 // Add the height difference to the total difference.
                 d += std::abs(lhs.elevation(point) - rhs.elevation(point));
                 n++;
             }
-        
+
         // Return the mean of the distances.
         if (n < 1)
             return 0.0;
         else
             return d / n;
     }
-    
-    
+
+
 protected:
     /// Checks if the given map tile indices are valid.
     bool check(size_t ix, size_t, iy)
     {
-        return 0 <= ix_tmp && ix_tmp < map_.size() 
+        return 0 <= ix_tmp && ix_tmp < map_.size()
             && 0 <= iy_tmp && iy_tmp < map_[0].size();
     }
 
@@ -142,7 +148,7 @@ protected:
     {
         int ix_tmp = std::floor((p.x - x_min_) / resolution_);
         int iy_tmp = std::floor((p.y - y_min_) / resolution_);
-        
+
         if (check(ix_tmp, iy_tmp))
         {
             ix = ix_tmp;
