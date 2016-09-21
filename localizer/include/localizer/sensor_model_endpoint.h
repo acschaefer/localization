@@ -47,7 +47,6 @@ public:
     /// Constructor.
     /// \param[in] PCD file used as a map when weighting the particles.
     SensorModelEndpoint(pcl::PointCloud<pcl::PointXYZI>::ConstPtr map, double res = min_res)
-        : res_(min_res)
     {
         set_sparsification_resolution(res);
 
