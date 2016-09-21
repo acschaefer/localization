@@ -2,7 +2,7 @@
 #define ELEVATION_MAP_H_ ELEVATION_MAP_H_
 
 // Standard library.
-#include <array>
+#include <vector>
 #include <cmath>
 
 // Point Cloud Library.
@@ -18,7 +18,7 @@ class ElevationMap
 {
 protected:
     /// Map data.
-    std::array<std::array<double> > map_;
+    std::vector<std::vector<double> > map_;
 
     /// Edge length of the map tiles.
     double resolution_;
