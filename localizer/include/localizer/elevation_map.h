@@ -102,27 +102,27 @@ public:
 
 
     /// Computes the mean distance between two elevation maps.
-    double operator-(const ElevationMap& lhs, const ElevationMap& rhs)
+    double diff(const ElevationMap& map, double d_max = std::numeric_limits<double>::max())
     {
-        // Check if both maps have the same resoltion.
-        if (lhs.resolution_ != rhs.resolution_)
+        // Check if both maps have the same resolution.
+        if (resolution_ != map.resolution_)
             ROS_ERROR("ElevationMap objects must have the same resolution to allow for comparison.");
 
         // Compute the total height distance between the maps.
         double d = 0.0;
         size_t n = 0;
-        for (size_t ix = 0; ix < lhs.map_.size(); ++ix)
-            for (size_t iy = 0; iy < lhs.map_[0].size(); ++iy)
+        for (size_t ix = 0; ix < map_.size(); ++ix)
+            for (size_t iy = 0; iy < map_[0].size(); ++iy)
             {
                 // Compute the center of the map tile.
-                PointXYZ point(lhs.x_min_ + (ix+0.5)*lhs.resolution_, lhs.y_min_ + (iy+0.5)*lhs.resolution_, 0.0);
+                PointXYZ point(x_min_ + (ix+0.5)*resolution_, y_min_ + (iy+0.5)*resolution_, 0.0);
 
                 // Check if both maps define an elevation value.
-                if (std::isnan(lsh.elevation(point) || std::isnan(rhs.elevation(point)))))
+                if (std::isnan(elevation(point) || std::isnan(map.elevation(point)))))
                     continue;
 
                 // Add the height difference to the total difference.
-                d += std::abs(lhs.elevation(point) - rhs.elevation(point));
+                d += std::abs(elevation(point) - map.elevation(point));
                 n++;
             }
 
