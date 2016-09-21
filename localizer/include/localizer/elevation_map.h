@@ -178,13 +178,17 @@ public:
         std::ofstream file;
         file.open(filename.c_str());
         for (size_t ix = 0; ix < map_.size(); ++ix)
-        {
             for (size_t iy = 0; iy < map_[0].size(); ++iy)
-                file << map_[ix][iy] << " ";
-
-            file << std::endl;
-        }
+            {
+                file << map_[ix][iy];
+                if (iy < map_[ix].size()-1)
+                    file << ",";
+                else
+                    file << std::endl;
+            }
         file.close();
+
+        ROS_DEBUG_STREAM("Saved \"" << filename << "\".");
     }
 
 
