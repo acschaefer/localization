@@ -48,10 +48,13 @@ public:
         double y_max = std::numeric_limits<double>::min();
         for (size_t i = 0; i < point_cloud.size(); ++i)
         {
-            x_min = std::min<double>(x_min, point_cloud[i].x);
-            y_min = std::min<double>(y_min, point_cloud[i].y);
-            x_max = std::max<double>(x_max, point_cloud[i].x);
-            y_max = std::max<double>(y_max, point_cloud[i].y);
+            if (std::isfinite(point_cloud[i].x) && std::isfinite(point_cloud[i].y))
+            {
+                x_min = std::min<double>(x_min, point_cloud[i].x);
+                y_min = std::min<double>(y_min, point_cloud[i].y);
+                x_max = std::max<double>(x_max, point_cloud[i].x);
+                y_max = std::max<double>(y_max, point_cloud[i].y);
+            }
         }
 
         // Compute the corner of the map where the x and y coordinates reach their minimum.
