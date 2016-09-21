@@ -4,6 +4,8 @@
 // Standard library.
 #include <vector>
 #include <cmath>
+#include <iostream>
+#include <fstream>
 
 // Point Cloud Library.
 #include <pcl/point_cloud.h>
@@ -158,6 +160,33 @@ public:
     {
         return resolution_;
     }
+
+
+    /// Saves the elevation map to a CSV file.
+    bool save(const std::string& filename = std::string())
+    {
+        // Define the filename.
+        if (filename.empty())
+        {
+            ros::Time now(ros::Time::now());
+            std::stringstream filename_stream;
+            filename_stream << now.sec << now.nsec << ".csv";
+            filename = filename_stream.str();
+        }
+
+        // Write the map to a comma-separated file.
+        std::ofstream file;
+        file.open(filename.c_str());
+        for (size_t ix = 0; ix < map_.size(); ++ix)
+        {
+            for (size_t iy = 0; iy < map_[0].size(); ++iy)
+                file << map_[ix][iy] << " ";
+
+            file << std::endl;
+        }
+        file.close();
+    }
+
 
 
 protected:
