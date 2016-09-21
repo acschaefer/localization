@@ -35,7 +35,7 @@ protected:
 
 public:
     /// Constructor.
-    ElevationMap(pcl::PointCloud<PointType>::ConstPtr point_cloud, double resolution = 0.1f)
+    ElevationMap(const pcl::PointCloud<PointType>& point_cloud, double resolution = 0.1f)
         : resolution_min_(1.0e-3)
     {
         // Set the resolution.
@@ -48,10 +48,10 @@ public:
         double y_max = std::numeric_limits<double>::min();
         for (size_t i = 0; i < point_cloud->size(); ++i)
         {
-            x_min = std::min<double>(x_min, point_cloud->at(i)->x);
-            y_min = std::min<double>(y_min, point_cloud->at(i)->y);
-            x_max = std::max<double>(x_max, point_cloud->at(i)->x);
-            y_max = std::max<double>(y_max, point_cloud->at(i)->y);
+            x_min = std::min<double>(x_min, point_cloud[i].x);
+            y_min = std::min<double>(y_min, point_cloud[i].y);
+            x_max = std::max<double>(x_max, point_cloud[i].x);
+            y_max = std::max<double>(y_max, point_cloud[i].y);
         }
 
         // Compute the corner of the map where the x and y coordinates reach their minimum.
@@ -68,10 +68,10 @@ public:
             map_[i].resize(y_size, std::numeric_limits<double>::quiet_NaN());
 
         // Compute the elevation values.
-        for (size_t i = 0; i < point_cloud->size(); ++i)
+        for (size_t i = 0; i < point_cloud.size(); ++i)
         {
             size_t ix, iy;
-            get_tile(point_cloud->at(i), ix, iy);
+            get_tile(point_cloud[i], ix, iy);
             if (std::isnan(map_[ix][iy]))
                 map_[ix][iy] = std::numeric_limits<double>::min();
 
