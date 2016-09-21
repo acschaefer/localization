@@ -126,7 +126,7 @@ protected:
         pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
 
         // Convert the point cloud to an elevation map.
-        ElevationMap<pcl::PointXYZI> map_robot(pc_robot, map_.resolution());
+        ElevationMap<pcl::PointXYZI> map_robot(pc_map, map_.resolution());
 
         // Set the maximum distance between two points used for weighting the particles.
         const double d_max = 0.5;
