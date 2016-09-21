@@ -117,7 +117,7 @@ public:
     {
         // Check if both maps have the same resolution.
         if (resolution_ != map.resolution_)
-            ROS_ERROR("ElevationMap objects must have the same resolution to allow for comparison.");
+            ROS_ERROR("Elevation maps must have the same resolution to be comparable.");
 
         // Compute the total height distance between the maps.
         double d_total = 0.0;
