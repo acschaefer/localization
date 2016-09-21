@@ -134,6 +134,13 @@ public:
     }
 
 
+    /// Returns the resolution of the map.
+    double resolution()
+    {
+        return resolution_;
+    }
+
+
 protected:
     /// Checks if the given map tile indices are valid.
     bool check(size_t ix, size_t, iy)
