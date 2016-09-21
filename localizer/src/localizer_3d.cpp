@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 
         // Fill the cloud with particles.
         std::vector<Particle> particles(particle_filter.get_particles());
-        for (int i = 0; i < particles.size(); i++)
+        for (size_t i = 0; i < particles.size(); i++)
         {
             geometry_msgs::Pose pose;
             tf::poseTFToMsg(particles[i].pose, pose);
