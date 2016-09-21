@@ -4,6 +4,9 @@
 // Enable/disable multithreading.
 #define MULTITHREADING true
 
+// Enable/disable saving debug files.
+#define SAVE_TO_FILE true
+
 // Standard library.
 #include <vector>
 
@@ -45,6 +48,9 @@ public:
     SensorModelElevation(const pcl::PointCloud<pcl::PointXYZI>& map, double res = min_res)
         : map_(map, res)
     {
+        // Save the elevation map to file.
+        if (SAVE_TO_FILE)
+            map_.save("map.csv");
     }
 
 
