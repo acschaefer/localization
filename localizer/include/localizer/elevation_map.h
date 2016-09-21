@@ -178,9 +178,15 @@ protected:
     /// If the point lies outside the map, this method returns \c false.
     bool tile(double x, double y, size_t& ix, size_t& iy) const
     {
+        // If the coordinates are infinite, exit immediately.
+        if (!std::isfinite(x) || !std::isfinite(y))
+            return false;
+
+        // Compute the tile index that corresponds to the given coordinates.
         int ix_tmp = std::floor((x - x_min_) / resolution_);
         int iy_tmp = std::floor((y - y_min_) / resolution_);
 
+        // If the coordinates lie within the map, return the corresponding map tile indices.
         if (check(ix_tmp, iy_tmp))
         {
             ix = ix_tmp;
