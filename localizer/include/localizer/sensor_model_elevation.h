@@ -132,14 +132,21 @@ protected:
         pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
 
         // Convert the point cloud to an elevation map.
-        ElevationMap<pcl::PointXYZI> map_robot(pc_map, map_.resolution());
+        ElevationMap<pcl::PointXYZI> map(pc_map, map_.resolution());
 
         // Set the maximum distance between two points used for weighting the particles.
         const double d_max = 0.5;
 
         // Compute how well the measurements match the map by computing the mean distance between the tiles
         // of the elevation maps.
-        particle.weight = d_max - map_robot.diff(map_, d_max);
+        particle.weight = d_max - map.diff(map_, d_max);
+
+        // Save the map to file.
+        if (SAVE_TO_FILE)
+        {
+            pcl::io::savePCDFileASCII("a.pcd", pc_map);
+            map.save("a.csv");
+        }
     }
 };
 
