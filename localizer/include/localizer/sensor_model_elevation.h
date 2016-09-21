@@ -121,9 +121,6 @@ protected:
     /// \param[in,out] particle particle whose weight is computed.
     virtual void compute_particle_weight(const pcl::PointCloud<pcl::PointXYZI>& pc_robot, Particle& particle)
     {
-        // Set the maximum distance between two points used for weighting the particles.
-        const double d_max = 0.5;
-
         // Transform the sensor point cloud from the particle frame to the map frame.
         pcl::PointCloud<pcl::PointXYZI> pc_map;
         pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
@@ -131,9 +128,12 @@ protected:
         // Convert the point cloud to an elevation map.
         ElevationMap<pcl::PointXYZI> map_robot(pc_robot, map_.resolution());
 
+        // Set the maximum distance between two points used for weighting the particles.
+        const double d_max = 0.5;
+
         // Compute how well the measurements match the map by computing the mean distance between the tiles
         // of the elevation maps.
-        particle.weight = d_max - map_robot.diff(map_);
+        particle.weight = d_max - map_robot.diff(map_, d_max);
     }
 };
 
