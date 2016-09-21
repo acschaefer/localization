@@ -142,7 +142,7 @@ public:
 
         // Return the mean of the distances.
         if (n < 1)
-            return 0.0;
+            return d_max;
         else
             return d_total / n;
     }
