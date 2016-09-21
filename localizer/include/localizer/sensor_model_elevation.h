@@ -32,9 +32,6 @@
 class SensorModelElevation : public SensorModel<pcl::PointCloud<pcl::PointXYZI> >
 {
 protected:
-    /// Resolution of the downsampled point clouds.
-    double res_;
-
     /// Lower bound of the resolution used to sparsify point clouds.
     static const double min_res;
 
@@ -46,8 +43,7 @@ public:
     /// Constructor.
     /// \param[in] PCD file that is converted to the global elevation map.
     SensorModelElevation(const pcl::PointCloud<pcl::PointXYZI>& map, double res = min_res)
-        : map_(map, res),
-          res_(map_.resolution())
+        : map_(map, res)
     {
     }
 
@@ -114,7 +110,8 @@ protected:
     {
         pcl::VoxelGrid<pcl::PointXYZI> filter;
         filter.setInputCloud(boost::make_shared<pcl::PointCloud<pcl::PointXYZI> >(pc));
-        filter.setLeafSize(res_, res_, res_);
+        double res = map_.resolution();
+        filter.setLeafSize(res, res, res);
         filter.filter(pc_sparse);
     }
 
