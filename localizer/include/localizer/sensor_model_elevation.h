@@ -5,7 +5,7 @@
 #define MULTITHREADING true
 
 // Enable/disable saving debug files.
-#define SAVE_TO_FILE true
+#define SAVE_TO_FILE false
 
 // Standard library.
 #include <vector>
@@ -143,10 +143,7 @@ protected:
 
         // Save the map to file.
         if (SAVE_TO_FILE)
-        {
-            pcl::io::savePCDFileASCII("a.pcd", pc_map);
-            map.save("a.csv");
-        }
+            map.save();
     }
 };
 
