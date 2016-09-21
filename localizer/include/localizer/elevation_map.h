@@ -122,7 +122,7 @@ public:
                     continue;
 
                 // Add the height difference to the total difference.
-                d += std::abs(elevation(point) - map.elevation(point));
+                d += std::min(std::abs(elevation(point) - map.elevation(point)), d_max);
                 n++;
             }
 
