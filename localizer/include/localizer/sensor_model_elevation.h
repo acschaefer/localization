@@ -134,12 +134,9 @@ protected:
         // Convert the point cloud to an elevation map.
         ElevationMap<pcl::PointXYZI> map(pc_map, map_.resolution());
 
-        // Set the maximum distance between two points used for weighting the particles.
-        const double d_max = 0.5;
-
         // Compute how well the measurements match the map by computing the mean distance between the tiles
         // of the elevation maps.
-        particle.weight = d_max - map.diff(map_, d_max);
+        particle.weight = map.expdiff(map_);
 
         // Save the map to file.
         if (SAVE_TO_FILE)
