@@ -163,7 +163,7 @@ public:
 
 
     /// Saves the elevation map to a CSV file.
-    void save(const std::string& filename = std::string())
+    void save(std::string filename = std::string())
     {
         // Define the filename.
         if (filename.empty())
