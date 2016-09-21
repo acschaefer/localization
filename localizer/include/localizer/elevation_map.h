@@ -59,8 +59,8 @@ public:
         y_min_ = std::floor(y_min/resolution) * resolution_;
 
         // Compute the size of the map.
-        size_t x_size = std::ceil((x_max-x_min_) / resolution_);
-        size_t y_size = std::ceil((y_max-y_min_) / resolution_);
+        size_t x_size = std::max(std::ceil((x_max-x_min_) / resolution_), 1);
+        size_t y_size = std::max(std::ceil((y_max-y_min_) / resolution_), 1);
 
         // Allocate the map and set all values to NaN.
         map_.resize(x_size);
