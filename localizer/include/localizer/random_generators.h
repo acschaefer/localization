@@ -181,8 +181,8 @@ public:
                          double min_angle, double max_angle,
                          double var_z)
         : radius_generator_(mean_radius, var_radius),
-          angle_generator_(min_angle, max_angle),
-          z_generator_(0.0, var_z)
+          z_generator_(0.0, var_z),
+          angle_generator_(min_angle, max_angle)
     {
     }
 

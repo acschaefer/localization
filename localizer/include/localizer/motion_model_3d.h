@@ -101,7 +101,7 @@ protected:
 
         double sum_sin_yaw, sum_cos_yaw;
         sum_sin_yaw = sum_cos_yaw = 0.0;
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
         {
             tf::Matrix3x3 rotation(particles[p].pose.getRotation());
             double roll, pitch, yaw;
@@ -138,7 +138,7 @@ protected:
         VectorPolarGenerator vector_generator(0.0, var_xy_, 0.0, 2.0*M_PI, 1.0);
 
         // Sample the start poses.
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
         {
             rotation.setRPY(roll, pitch, yaw_generator());
             tf::Vector3 translation(start_pose_.getOrigin()+vector_generator());
@@ -164,7 +164,6 @@ protected:
         // Compute the translational increment.
         const double d_x = movement.getOrigin().x();
         const double d_y = movement.getOrigin().y();
-        const double d_z = movement.getOrigin().z();
 
         // Decompose the movement into atomic movements according to the
         // motion model.
@@ -191,7 +190,7 @@ protected:
                                     + alpha_[1]*std::abs(trans);
 
         // Add noise to the movement and move the particles.
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
         {
             const tf::Transform& last_pose = particles[p].pose;
 

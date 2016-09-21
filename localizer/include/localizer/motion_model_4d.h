@@ -61,7 +61,7 @@ public:
 
         // Scatter the particles along the z-axis.
         GaussNumberGenerator z_generator(start_pose_.getOrigin().z(), var_z_);
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
         {
             tf::Vector3 position(particles[p].pose.getOrigin());
             position.setZ(z_generator());
@@ -86,7 +86,7 @@ public:
                     0.0,
                     alpha_[4] * movement.getOrigin().length());
 
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
             particles[p].pose.getOrigin()
                     += tf::Vector3(0.0, 0.0, z_generator());
     }

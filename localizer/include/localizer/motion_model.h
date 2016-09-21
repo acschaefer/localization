@@ -41,7 +41,7 @@ public:
     /// Initializes the particle filter with the given number of particles.
     virtual void init(std::vector<Particle>& particles)
     {
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
             particles[p].pose = start_pose_;
     }
 
@@ -60,7 +60,7 @@ public:
         tf::Vector3 mean_vector;
         mean_vector.setZero();
 
-        for (int p = 0; p < particles.size(); p++)
+        for (size_t p = 0; p < particles.size(); p++)
             mean_vector += particles[p].pose.getOrigin() * particles[p].weight;
 
         tf::Transform mean_pose(tf::Transform::getIdentity());
