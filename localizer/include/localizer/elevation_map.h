@@ -120,9 +120,12 @@ public:
     }
 
 
-    /// Computes the mean distance between two elevation maps.
-    double diff(const ElevationMap& map, double d_max = std::numeric_limits<double>::max()) const
+    /// Computes a measure of how well the given map matches this map by computing the mean distance
+    /// between the two elevation maps.
+    double lindiff(const ElevationMap& map, double d_max = 1.0) const
     {
+        d_max = std::abs(d_max);
+
         // Check if both maps have the same resolution.
         if (resolution_ != map.resolution_)
             ROS_ERROR("Elevation maps must have the same resolution to be comparable.");
@@ -150,9 +153,47 @@ public:
 
         // Return the mean of the distances.
         if (n < 1)
-            return d_max;
+            return 0.0;
         else
-            return d_total / n;
+            return d_max - d_total / n;
+    }
+
+
+    /// Computes a measure of how well the given map matches this map by computing the exponentials
+    /// of the distance between the two elevation maps.
+    double expdiff(const ElevationMap& map, double d_max = 1.0) const
+    {
+        // Check if both maps have the save resolution.
+        if (resolution_ != map.resolution())
+            ROS_ERROR("Elevation maps must have the same resolution to be compatible.");
+
+        // Compute the sum of the exponentials of the height difference between both maps.
+        double exp_d_total = 0.0;
+        const double exp_d_max = std::exp(std::abs(d_max));
+        size_t n = 0;
+        for (size_t ix = 0; ix < map_.size(); ++ix)
+            for (size_t iy = 0; iy < map_[0].size(); ++iy)
+            {
+                // Compute the coordinates of the center of the map tile.
+                double x_center = x_min_ + (ix+0.5)*resolution_;
+                double y_center = y_min_ + (iy+0.5)*resolution_;
+
+                // Compute the height difference between the two map tiles.
+                double d = elevation(x_center, y_center) - map.elevation(x_center, y_center);
+
+                // If the height difference is defined, compute the exponential and add it to the total difference.
+                if (std::isfinite(d))
+                {
+                    exp_d_total += std::min(std::exp(std::abs(d)), exp_d_max);
+                    n++;
+                }
+            }
+
+        // Return the mean of the exponentials.
+        if (n < 1)
+            return 0.0;
+        else
+            return exp_d_max - exp_d_total / n;
     }
 
 
