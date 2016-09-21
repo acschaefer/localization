@@ -133,9 +133,7 @@ public:
                 double d = elevation(x_center, y_center) - map.elevation(x_center, y_center);
 
                 // If the height difference is defined, add it to the total difference.
-                if (std::isnan(d))
-                    continue;
-                else
+                if (std::isfinite(d))
                 {
                     d_total += std::min(std::abs(d), d_max);
                     n++;
