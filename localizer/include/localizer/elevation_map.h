@@ -74,11 +74,13 @@ public:
         for (size_t i = 0; i < point_cloud.size(); ++i)
         {
             size_t ix, iy;
-            tile(point_cloud[i], ix, iy);
-            if (std::isnan(map_[ix][iy]))
-                map_[ix][iy] = std::numeric_limits<double>::min();
+            if (tile(point_cloud[i], ix, iy))
+            {
+                if (std::isnan(map_[ix][iy]))
+                    map_[ix][iy] = std::numeric_limits<double>::min();
 
-            map_[ix][iy] = std::max<double>(map_[ix][iy], (double)point_cloud[i].z);
+                map_[ix][iy] = std::max<double>(map_[ix][iy], (double)point_cloud[i].z);
+            }
         }
     }
 
