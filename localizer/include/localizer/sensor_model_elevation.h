@@ -90,7 +90,7 @@ public:
     }
 
 
-    /// Computes the distance in z-direction between the point cloud in the frames of all particles and the map.
+    /// Computes the distance in z-direction between the map and the point cloud in the frames of all particles.
     std::vector<double> get_dz(const pcl::PointCloud<pcl::PointXYZI>& pc_robot, std::vector<Particle>& particles)
     {
         std::vector<double> dz(particles.size(), std::numeric_limits<double>::quiet_NaN());
@@ -138,13 +138,22 @@ protected:
     }
 
 
-    /// Computes the weight of the particle.
+    /// Computes the weight of the particle and optimizes its z-coordinate.
     /// \param[in] pc_robot measured point cloud in the robot frame.
     /// \param[in,out] particle particle whose weight is computed.
     virtual void compute_particle_weight(const pcl::PointCloud<pcl::PointXYZI>& pc_robot, Particle& particle)
     {
         // Transform the sensor point cloud from the particle frame to the map frame.
         pcl::PointCloud<pcl::PointXYZI> pc_map;
+        pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
+
+        // Adjust the z-coordinate of the particle to minimize the mean distance between the point cloud
+        // and the elevation map.
+        tf::Vector3 v = particle.pose.getOrigin();
+        v.setZ(v.getZ() - map_.diff(pc_map));
+        particle.pose.setOrigin(v);
+
+        // Transform the sensor point cloud from the optimized particle frame to the map frame.
         pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
 
         // Compute how well the measurements match the map by computing the mean distance between
