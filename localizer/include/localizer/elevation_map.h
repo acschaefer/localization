@@ -26,7 +26,7 @@ protected:
     double resolution_;
 
     /// Minimum admissible resolution.
-    const double resolution_min_;
+    static const double resolution_min;
 
     /// Minimum x coordinate covered by the map.
     double x_min_;
@@ -37,11 +37,10 @@ protected:
 
 public:
     /// Constructor.
-    ElevationMap(const pcl::PointCloud<PointType>& point_cloud, double resolution = 0.1f)
-        : resolution_min_(1.0e-3)
+    ElevationMap(const pcl::PointCloud<PointType>& point_cloud, double resolution = 0.1)
     {
         // Set the resolution.
-        resolution_ = std::max(resolution_min_, resolution);
+        resolution_ = std::max(resolution_min, resolution);
 
         // Compute the limits of the point cloud in x and y direction.
         double x_min = std::numeric_limits<double>::max();
@@ -60,8 +59,8 @@ public:
         }
 
         // Compute the corner of the map where the x and y coordinates reach their minimum.
-        x_min_ = std::floor(x_min/resolution) * resolution_;
-        y_min_ = std::floor(y_min/resolution) * resolution_;
+        x_min_ = std::floor(x_min/resolution_) * resolution_;
+        y_min_ = std::floor(y_min/resolution_) * resolution_;
 
         // Compute the size of the map.
         size_t x_size = std::max<size_t>(std::ceil<size_t>((x_max-x_min_) / resolution_), 1u);
@@ -274,6 +273,9 @@ protected:
             return false;
     }
 };
+
+
+template<typename PointType> const double ElevationMap<PointType>::resolution_min = 0.001;
 
 
 #endif
