@@ -178,13 +178,11 @@ public:
     }
 
 
-    /// Computes the mean distance in z-direction between the elevation map and a given point cloud.
-    /// The individual distances between a point and the corresponding map tile are limited to [0; +inf].
-    double limdiff(const pcl::PointCloud<PointType> pc, double d_max = 10.0)
+    /// Computes a number in [0; 1] that expresses how well the given point cloud matches the elevation map.
+    double match(const pcl::PointCloud<PointType> pc)
     {
-        d_max = std::abs(d_max);
-
-        // Compute the total distance in z direction between the point cloud and the map.
+        // Compute the total distance in z-direction between the point cloud and the map.
+        const double d_max = 1.0;
         double d_total = 0.0;
         unsigned int n = 0u;
         for (size_t i = 0; i < pc.size(); ++i)
@@ -192,12 +190,17 @@ public:
             size_t ix, iy;
             if (tile(pc[i], ix, iy))
             {
-                d_total += std::max(0.0, pc[i].z-map_[ix][iy]);
+                d_total += std::min(d_max, std::max(0.0, pc[i].z-map_[ix][iy]));
                 n++;
             }
         }
 
-        return d_total / std::max(1u, n);
+        // If there are too little correspondences between the point cloud and the elevation map, return the
+        // error.
+        if (n / std::max<double>(1.0, pc.size()) < 0.9)
+            return 0.0;
+        else
+            return d_max - d_total / n;
     }
 
 

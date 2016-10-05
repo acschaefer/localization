@@ -149,7 +149,7 @@ protected:
 
         // Compute how well the measurements match the map by computing the mean distance between
         // the point cloud and the tiles of the elevation map.
-        particle.weight = map_.diff(pc_map);
+        particle.weight = map_.match(pc_map);
     }
 };
 
