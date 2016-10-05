@@ -16,7 +16,6 @@
 // Point Cloud Library.
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/filters/voxel_grid.h>
 
 // ROS.
 #include <ros/console.h>
@@ -60,10 +59,6 @@ public:
     virtual void compute_particle_weights(const pcl::PointCloud<pcl::PointXYZI>& pc_robot,
                                           std::vector<Particle>& particles)
     {
-        // Downsample the point cloud provided by the robot.
-        pcl::PointCloud<pcl::PointXYZI> pc_sparse;
-        sparsify(pc_robot, pc_sparse);
-
         // Compute the particle weights.
         if (MULTITHREADING)
         {
@@ -75,7 +70,7 @@ public:
                 threads.create_thread(boost::bind(
                                           &SensorModelElevation::compute_particle_weights_thread,
                                           this,
-                                          boost::cref(pc_sparse), boost::ref(particles), t));
+                                          boost::cref(pc_robot), boost::ref(particles), t));
             }
 
             // Wait for the threads to return.
@@ -85,7 +80,7 @@ public:
         {
             // Compute the weights of all particles.
             for (size_t i = 0; i < particles.size(); ++i)
-                compute_particle_weight(pc_sparse, particles[i]);
+                compute_particle_weight(pc_robot, particles[i]);
         }
     }
 
@@ -122,19 +117,6 @@ protected:
         const int stop_index = std::min((int)particles.size(), (thread+1) * particles_per_thread);
         for (int i = start_index; i < stop_index; ++i)
             compute_particle_weight(pc_robot, particles[i]);
-    }
-
-
-    /// Downsamples the point cloud using a voxel grid.
-    /// \param[in] pc point cloud to sparsify.
-    /// \param[out] pc_sparse sparsified point cloud.
-    virtual void sparsify(const pcl::PointCloud<pcl::PointXYZI>& pc, pcl::PointCloud<pcl::PointXYZI>& pc_sparse)
-    {
-        pcl::VoxelGrid<pcl::PointXYZI> filter;
-        filter.setInputCloud(boost::make_shared<pcl::PointCloud<pcl::PointXYZI> >(pc));
-        double res = map_.resolution();
-        filter.setLeafSize(res, res, res);
-        filter.filter(pc_sparse);
     }
 
 
