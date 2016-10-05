@@ -212,6 +212,19 @@ public:
     }
 
 
+    /// Print the Cartesian coordinates and the weights of all particles.
+    void print()
+    {
+        std::cout << particles_.size() << " particles:" << std::endl;
+        for (size_t i = 0; i < particles_.size(); ++i)
+        {
+            tf::Vector3& v = particles_[i].pose.getOrigin();
+            std::cout << "[" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]: " << particles_[i].weight;
+            std::cout << std::endl;
+        }
+    }
+
+
 protected:
     /// Normalizes the particle weights so they sum up to 1.
     /// \pre All weights are zero or positive.
