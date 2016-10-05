@@ -201,6 +201,17 @@ public:
     }
 
 
+    /// Estimates the number of effective particles.
+    int get_neff()
+    {
+        double sqw = 0.0;
+        for (size_t i = 0; i < particles_.size(); ++i)
+            sqw += std::pow(particles_[i].weight, 2.0);
+
+        return 1.0/sqw;
+    }
+
+
 protected:
     /// Normalizes the particle weights so they sum up to 1.
     /// \pre All weights are zero or positive.
