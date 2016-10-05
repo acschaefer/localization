@@ -90,6 +90,22 @@ public:
     }
 
 
+    /// Computes the distance in z-direction between the point cloud in the frames of all particles and the map.
+    std::vector<double> get_dz(const pcl::PointCloud<pcl::PointXYZI>& pc_robot, std::vector<Particle>& particles)
+    {
+        std::vector<double> dz(particles.size(), std::numeric_limits<double>::quiet_NaN());
+        pcl::PointCloud<pcl::PointXYZI> pc_map;
+        for (size_t i = 0; i < particles.size(); ++i)
+        {
+            // Transform the sensor point cloud from the particle frame to the map frame.
+            pcl_ros::transformPointCloud(pc_robot, pc_map, particles[i].pose);
+            dz[i] = map_.diff(pc_map);
+        }
+
+        return dz;
+    }
+
+
 protected:
     /// Computes the weights of a subset of particles when using multiple threads.
     /// \param[in,out] particles vector of all particles.
