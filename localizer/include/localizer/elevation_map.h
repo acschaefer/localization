@@ -121,7 +121,7 @@ public:
 
     /// Computes a measure of how well the given map matches this map by computing the mean distance
     /// between the two elevation maps.
-    double lindiff(const ElevationMap& map, double d_max = 1.0) const
+    double diff(const ElevationMap& map, double d_max = 1.0) const
     {
         d_max = std::abs(d_max);
 
@@ -155,6 +155,28 @@ public:
             return 0.0;
         else
             return d_max - d_total / n;
+    }
+
+
+    /// Computes the mean distance between the elevation map and a given point cloud in z direction.
+    double diff(const pcl::PointCloud<PointType> pc, double d_max = 10.0)
+    {
+        d_max = std::abs(d_max);
+
+        // Compute the total distance in z direction between the point cloud and the map.
+        double d_total = 0.0;
+        unsigned int n = 0u;
+        for (size_t i = 0; i < pc.size(); ++i)
+        {
+            size_t ix, iy;
+            if (tile(pc[i], ix, iy))
+            {
+                d_total += std::max(0.0, pc[i].z-map_[ix][iy]);
+                n++;
+            }
+        }
+
+        return d_total / std::max(1u, n);
     }
 
 
