@@ -158,8 +158,29 @@ public:
     }
 
 
-    /// Computes the mean distance between the elevation map and a given point cloud in z direction.
-    double diff(const pcl::PointCloud<PointType> pc, double d_max = 10.0)
+    /// Computes the mean distance in z-direction between the elevation map and a given point cloud.
+    double diff(const pcl::PointCloud<PointType> pc)
+    {
+        // Compute the total distance in z direction between the point cloud and the map.
+        double d_total = 0.0;
+        unsigned int n = 0u;
+        for (size_t i = 0; i < pc.size(); ++i)
+        {
+            size_t ix, iy;
+            if (tile(pc[i], ix, iy))
+            {
+                d_total += pc[i].z - map_[ix][iy];
+                n++;
+            }
+        }
+
+        return d_total / std::max(1u, n);
+    }
+
+
+    /// Computes the mean distance in z-direction between the elevation map and a given point cloud.
+    /// The individual distances between a point and the corresponding map tile are limited to [0; +inf].
+    double limdiff(const pcl::PointCloud<PointType> pc, double d_max = 10.0)
     {
         d_max = std::abs(d_max);
 
