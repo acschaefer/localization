@@ -131,21 +131,14 @@ protected:
         pcl::PointCloud<pcl::PointXYZI> pc_map;
         pcl_ros::transformPointCloud(pc_robot, pc_map, particle.pose);
 
-        // Convert the point cloud to an elevation map.
-        ElevationMap<pcl::PointXYZI> map(pc_map, map_.resolution());
-
-        // Compute how well the measurements match the map by computing the mean distance between the tiles
-        // of the elevation maps.
-        particle.weight = map.expdiff(map_);
-
-        // Save the map to file.
-        if (SAVE_TO_FILE)
-            map.save();
+        // Compute how well the measurements match the map by computing the mean distance between
+        // the point cloud and the tiles of the elevation map.
+        particle.weight = map_.diff(pc_map);
     }
 };
 
 
-const double SensorModelElevation::min_res = 1.0e-3;
+const double SensorModelElevation::min_res = 0.001;
 
 
 #endif
