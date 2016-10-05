@@ -63,13 +63,13 @@ public:
         y_min_ = std::floor(y_min/resolution_) * resolution_;
 
         // Compute the size of the map.
-        size_t x_size = std::max<size_t>(std::ceil<size_t>((x_max-x_min_) / resolution_), 1u);
-        size_t y_size = std::max<size_t>(std::ceil<size_t>((y_max-y_min_) / resolution_), 1u);
+        size_t x_size = std::max<size_t>(std::ceil((x_max-x_min_) / resolution_), 1);
+        size_t y_size = std::max<size_t>(std::ceil((y_max-y_min_) / resolution_), 1);
 
         // Allocate the map and set all values to NaN.
         map_.resize(x_size);
-        for (size_t i = 0; i < map_.size(); ++i)
-            map_[i].resize(y_size, std::numeric_limits<double>::quiet_NaN());
+        for (size_t ix = 0; ix < map_.size(); ++ix)
+            map_[ix].resize(y_size, std::numeric_limits<double>::quiet_NaN());
 
         // Compute the elevation values.
         for (size_t i = 0; i < point_cloud.size(); ++i)
