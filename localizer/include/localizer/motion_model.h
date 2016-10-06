@@ -19,7 +19,7 @@ protected:
 public:
     /// Default constructor.
     MotionModel()
-        : start_pose_(tf::Transform::getIdentity())
+          : start_pose_(tf::Transform::getIdentity())
     {
     }
 
@@ -57,7 +57,8 @@ public:
     /// \note The returned mean pose's rotation is always identity.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
-        tf::Vector3 mean_vector;
+        return tf::Transform();
+        /*tf::Vector3 mean_vector;
         mean_vector.setZero();
 
         for (size_t p = 0; p < particles.size(); p++)
@@ -66,7 +67,7 @@ public:
         tf::Transform mean_pose(tf::Transform::getIdentity());
         mean_pose.setOrigin(mean_vector);
 
-        return mean_pose;
+        return mean_pose;*/
     }
 };
 

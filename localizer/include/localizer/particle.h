@@ -13,15 +13,14 @@ struct Particle
     /// Robot pose.
     tf::Transform pose;
 
-    /// Weight of the particle.
-    double weight;
+    double error;
 
 
     /// Constructor.
     /// Initializes the particle to the given pose and weight.
-    Particle(const tf::Transform& pose = tf::Transform::getIdentity(), double weight = 1.0)
+    Particle(const tf::Transform& pose = tf::Transform::getIdentity(), double error = 0.0)
         : pose(pose),
-          weight(weight)
+          error(error)
     {
     }
 };

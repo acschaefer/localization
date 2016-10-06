@@ -94,7 +94,6 @@ public:
         /// \todo Delete the particles with the lowest weights.
         /// \todo Add particles scattered around the current mean.
         particles_.resize(n_particles, Particle(get_mean()));
-        normalize_particle_weights();
     }
 
 
@@ -119,7 +118,7 @@ public:
     void integrate_measurement(const typename SensorModelT::Measurement& measurement)
     {
         if (is_initialized())
-            sensor_model_->compute_particle_weights(measurement, particles_);
+            sensor_model_->compute_particle_errors(measurement, particles_);
     }
 
 
@@ -128,7 +127,7 @@ public:
     {
         if (is_initialized())
             for (size_t i = 0; i < measurements.size(); ++i)
-                sensor_model_->compute_particle_weights(measurements[i], particles_);
+                sensor_model_->compute_particle_errors(measurements[i], particles_);
     }
 
 
@@ -145,7 +144,7 @@ public:
 
         // The low variance sampling algorithm assumes the particle weights are normalized,
         // so normalize them.
-        normalize_particle_weights();
+        std::vector<double> weights = get_particle_weights();
 
         std::vector<Particle> resampled_particles;
 
@@ -154,7 +153,7 @@ public:
         UniformNumberGenerator generator(0.0, 1.0/M);
         double r = generator();
 
-        double c = particles_[0].weight;
+        double c = weights[0];
 
         int i = 0;
 
@@ -165,7 +164,7 @@ public:
             while (U > c)
             {
                 i += 1;
-                c += particles_[i].weight;
+                c += weights[i];
             }
 
             resampled_particles.push_back(particles_[i]);
@@ -173,9 +172,9 @@ public:
 
         particles_ = resampled_particles;
 
-        // Set the particle weights to a uniform distribution.
+        // Reset the particle errors.
         for (int p = 0; p < particles_.size(); p++)
-            particles_[p].weight = 1.0 / M;
+            particles_[p].error = 0.0;
     }
 
 
@@ -189,7 +188,6 @@ public:
     /// Computes the weighted mean position of all particles.
     tf::Transform get_mean()
     {
-        normalize_particle_weights();
         return motion_model_->get_mean(particles_);
     }
 
@@ -197,61 +195,64 @@ public:
     /// Estimates the number of effective particles.
     double get_neff()
     {
-        normalize_particle_weights();
-
+        std::vector<double> weights = get_particle_weights();
         double wsq = 0.0;
         for (size_t i = 0; i < particles_.size(); ++i)
-            if (!std::isnan(particles_[i].weight))
-                wsq += std::pow(particles_[i].weight, 2.0);
+        {
+            if (!std::isnan(weights[i]))
+                wsq += std::pow(weights[i], 2.0);
+        }
 
         return 1.0 / wsq;
     }
 
 
-    /// Print the Cartesian coordinates and the weights of all particles.
+    /// Print the Cartesian coordinates, the errors and weights of all particles.
     void print()
     {
+        std::vector<double> weights = get_particle_weights();
+
         std::cout << particles_.size() << " particles:" << std::endl;
         for (size_t i = 0; i < particles_.size(); ++i)
         {
             tf::Vector3& v = particles_[i].pose.getOrigin();
-            std::cout << "[" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]: " << particles_[i].weight;
-            std::cout << std::endl;
+            std::cout << "[" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]: "
+                      << particles_[i].error << ", " << weights[i] << std::endl;
         }
     }
 
 
 protected:
-    /// Normalizes the particle weights so they sum up to 1.
-    /// \pre All weights are zero or positive.
-    void normalize_particle_weights()
+    /// Computes the weight of all particles.
+    std::vector<double> get_particle_weights() const
     {
-        // Find the minimum partile weight.
-        double min_weight = std::numeric_limits<double>::max();
+        // Find the maximum particle error.
+        double max_error = 0.0;
         for (size_t i = 0u; i < particles_.size(); ++i)
-            min_weight = std::min(min_weight, particles_[i].weight);
+            max_error = std::max(max_error, particles_[i].error);
+
+        // Convert the error values to weights.
+        std::vector<double> weights(particles_.size());
+        for (size_t i = 0u; i < particles_.size(); ++i)
+            weights[i] = max_error - particles_[i].error;
 
         // Set all NaN particles to the minimum weight and sum up all weights.
         double total_weight = 0.0;
-        for (size_t i = 0u; i < particles_.size(); ++i)
+        for (size_t i = 0u; i < weights.size(); ++i)
         {
-            if (min_weight < 0)
-                particles_[i].weight -= min_weight;
+            if (std::isnan(weights[i]))
+                weights[i] = 0.0;
 
-            // Set all NaN particle weights to zero.
-            if (std::isnan(particles_[i].weight))
-                particles_[i].weight = 0.0;
-
-            total_weight += particles_[i].weight;
+            total_weight += weights[i];
         }
 
-        // Divide the weight of each particle by the total weight.
-        for (size_t i = 0u; i < particles_.size(); ++i)
+        // Normalize the weights
+        for (size_t i = 0u; i < weights.size(); ++i)
         {
             if (total_weight == 0.0)
-                particles_[i].weight = 1.0 / particles_.size();
+                weights[i] = 1.0 / weights.size();
             else
-                particles_[i].weight /= total_weight;
+                weights[i] /= total_weight;
         }
     }
 };

@@ -18,7 +18,7 @@ public:
 public:
     /// Computes the weights of the particles
     /// according to the given measurement.
-    virtual void compute_particle_weights(const MeasurementT& measurement, std::vector<Particle>& particles) = 0;
+    virtual void compute_particle_errors(const MeasurementT& measurement, std::vector<Particle>& particles) = 0;
 };
 
 
@@ -27,7 +27,7 @@ public:
 class NoSensorModel : public SensorModel<int>
 {
 public:
-    void compute_particle_weights(const int& measurement, std::vector<Particle>& particles)
+    void compute_particle_errors(const int& measurement, std::vector<Particle>& particles)
     {
     }
 };

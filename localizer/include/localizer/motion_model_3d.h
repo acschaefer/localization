@@ -96,6 +96,7 @@ protected:
     /// Calculates the weighted mean pose of all particles.
     virtual tf::Transform get_mean(const std::vector<Particle>& particles)
     {
+        /*
         tf::Vector3 mean_translation
             = MotionModel::get_mean(particles).getOrigin();
 
@@ -118,6 +119,8 @@ protected:
 
         tf::Transform mean_pose(mean_rotation, mean_translation);
         return mean_pose;
+        */
+        return tf::Transform();
     }
 
 

@@ -182,7 +182,7 @@ public:
     }
 
 
-    /// Computes how well the given point cloud matches the elevation map.
+    /// Computes the error between the given point cloud and the elevation map.
     double match(const pcl::PointCloud<PointType> pc)
     {
         // Compute the total distance in z-direction between the point cloud and the map.
@@ -205,10 +205,10 @@ public:
         }
 
         // If there are too little correspondences between the point cloud and the elevation map, set the error to NaN.
-        if (n < 1)
-            return std::numeric_limits<double>::quiet_NaN();
-        else
-            return -d_total / n;
+        //if (n / std::max<double>(1.0, pc.size()) < 0.2 || n < 1)
+        //    return std::numeric_limits<double>::quiet_NaN();
+        //else
+            return d_total / n;
     }
 
 
