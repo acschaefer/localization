@@ -169,8 +169,12 @@ public:
             size_t ix, iy;
             if (tile(pc[i], ix, iy))
             {
-                d_total += pc[i].z - map_[ix][iy];
-                n++;
+                double dz = pc[i].z - map_[ix][iy];
+                if (std::isfinite(dz))
+                {
+                    d_total += dz;
+                    n++;
+                }
             }
         }
 
