@@ -230,18 +230,36 @@ protected:
     /// \pre All weights are zero or positive.
     void normalize_particle_weights()
     {
-        // Sum up all weights.
+        // Check if some of the particles have negative weights.
+        bool negative = false;
+        double min_weight = std::numeric_limits<double>::max();
+        for (size_t i = 0u; i < particles_.size(); ++i)
+        {
+            negative |= particles_[i].weight < 0;
+            min_weight = std::min(min_weight, particles_[i].weight);
+        }
+
+        // Set all NaN particles to the minimum weight and sum up all weights.
         double total_weight = 0.0;
-        for (size_t p = 0; p < particles_.size(); ++p)
-            total_weight += particles_[p].weight;
+        for (size_t i = 0u; i < particles_.size(); ++i)
+        {
+            if (negative)
+                particles_[i].weight -= min_weight;
+
+            // Set all NaN particle weights to zero.
+            if (std::isnan(particles_[i].weight))
+                particles_[i].weight = 0.0;
+
+            total_weight += particles_[i].weight;
+        }
 
         // Divide the weight of each particle by the total weight.
-        for (size_t p = 0; p < particles_.size(); ++p)
+        for (size_t i = 0u; i < particles_.size(); ++i)
         {
             if (total_weight == 0.0)
-                particles_[p].weight = 1.0 / particles_.size();
+                particles_[i].weight = 1.0 / particles_.size();
             else
-                particles_[p].weight /= total_weight;
+                particles_[i].weight /= total_weight;
         }
     }
 };
