@@ -182,11 +182,10 @@ public:
     }
 
 
-    /// Computes a number in [0; 1] that expresses how well the given point cloud matches the elevation map.
+    /// Computes how well the given point cloud matches the elevation map.
     double match(const pcl::PointCloud<PointType> pc)
     {
         // Compute the total distance in z-direction between the point cloud and the map.
-        const double d_max = 1.0;
         double d_total = 0.0;
         unsigned int n = 0u;
         for (size_t i = 0; i < pc.size(); ++i)
@@ -194,17 +193,22 @@ public:
             size_t ix, iy;
             if (tile(pc[i], ix, iy))
             {
-                d_total += std::min(d_max, std::max(0.0, pc[i].z-map_[ix][iy]));
-                n++;
+                // Add current distance dz to total distance.
+                // Make sure the current distance stays in [0; d_max].
+                double dz = pc[i].z - map_[ix][iy];
+                if (std::isfinite(dz))
+                {
+                    d_total += std::max(0.0, dz);
+                    n++;
+                }
             }
         }
 
-        // If there are too little correspondences between the point cloud and the elevation map, return the
-        // error.
-        if (n / std::max<double>(1.0, pc.size()) < 0.9)
-            return 0.0;
+        // If there are too little correspondences between the point cloud and the elevation map, set the error to NaN.
+        if (n < 1)
+            return std::numeric_limits<double>::quiet_NaN();
         else
-            return d_max - d_total / n;
+            return -d_total / n;
     }
 
 
