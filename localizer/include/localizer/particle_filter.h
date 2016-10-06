@@ -195,13 +195,16 @@ public:
 
 
     /// Estimates the number of effective particles.
-    int get_neff()
+    double get_neff()
     {
-        double sqw = 0.0;
-        for (size_t i = 0; i < particles_.size(); ++i)
-            sqw += std::pow(particles_[i].weight, 2.0);
+        normalize_particle_weights();
 
-        return 1.0/sqw;
+        double wsq = 0.0;
+        for (size_t i = 0; i < particles_.size(); ++i)
+            if (!std::isnan(particles_[i].weight))
+                wsq += std::pow(particles_[i].weight, 2.0);
+
+        return 1.0 / wsq;
     }
 
 
