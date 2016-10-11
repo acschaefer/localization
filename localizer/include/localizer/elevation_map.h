@@ -1,7 +1,7 @@
 #ifndef ELEVATION_MAP_H_
 #define ELEVATION_MAP_H_ ELEVATION_MAP_H_
 
-// Standard library.
+// Standard libraries.
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -14,7 +14,7 @@
 #include <ros/console.h>
 
 
-/// Converts a PCL point cloud into a 2D elevation map.
+/// Converts a PCL point cloud to an elevation map.
 template<typename PointType>
 class ElevationMap
 {
@@ -47,7 +47,7 @@ public:
         double y_min = std::numeric_limits<double>::max();
         double x_max = std::numeric_limits<double>::min();
         double y_max = std::numeric_limits<double>::min();
-        for (size_t i = 0; i < point_cloud.size(); ++i)
+        for (size_t i = 0u; i < point_cloud.size(); ++i)
         {
             if (std::isfinite(point_cloud[i].x) && std::isfinite(point_cloud[i].y))
             {
@@ -68,11 +68,11 @@ public:
 
         // Allocate the map and set all values to NaN.
         map_.resize(x_size);
-        for (size_t ix = 0; ix < map_.size(); ++ix)
+        for (size_t ix = 0u; ix < map_.size(); ++ix)
             map_[ix].resize(y_size, std::numeric_limits<double>::quiet_NaN());
 
         // Compute the elevation values.
-        for (size_t i = 0; i < point_cloud.size(); ++i)
+        for (size_t i = 0u; i < point_cloud.size(); ++i)
         {
             size_t ix, iy;
             if (tile(point_cloud[i], ix, iy))
@@ -131,9 +131,9 @@ public:
 
         // Compute the total height distance between the maps.
         double d_total = 0.0;
-        size_t n = 0;
-        for (size_t ix = 0; ix < map_.size(); ++ix)
-            for (size_t iy = 0; iy < map_[0].size(); ++iy)
+        size_t n = 0u;
+        for (size_t ix = 0u; ix < map_.size(); ++ix)
+            for (size_t iy = 0u; iy < map_[0].size(); ++iy)
             {
                 // Compute the coordinates of the center of the map tile.
                 double x_center = x_min_ + (ix+0.5)*resolution_;
@@ -158,15 +158,15 @@ public:
     }
 
 
-    /// Computes the mean distance in z-direction between the elevation map and a given point cloud.
-    double diff(const pcl::PointCloud<PointType> pc)
+    /// Computes the mean distance in z direction between the elevation map and a given point cloud.
+    double diff(const pcl::PointCloud<PointType>& pc) const
     {
         // Compute the total distance in z direction between the point cloud and the map.
         double d_total = 0.0;
         unsigned int n = 0u;
-        for (size_t i = 0; i < pc.size(); ++i)
+        size_t ix, iy;
+        for (size_t i = 0u; i < pc.size(); ++i)
         {
-            size_t ix, iy;
             if (tile(pc[i], ix, iy))
             {
                 double dz = pc[i].z - map_[ix][iy];
@@ -183,12 +183,12 @@ public:
 
 
     /// Computes the error between the given point cloud and the elevation map.
-    double match(const pcl::PointCloud<PointType> pc)
+    double match(const pcl::PointCloud<PointType>& pc) const
     {
         // Compute the total distance in z-direction between the point cloud and the map.
         double d_total = 0.0;
         unsigned int n = 0u;
-        for (size_t i = 0; i < pc.size(); ++i)
+        for (size_t i = 0u; i < pc.size(); ++i)
         {
             size_t ix, iy;
             if (tile(pc[i], ix, iy))
@@ -204,11 +204,7 @@ public:
             }
         }
 
-        // If there are too little correspondences between the point cloud and the elevation map, set the error to NaN.
-        //if (n / std::max<double>(1.0, pc.size()) < 0.2 || n < 1)
-        //    return std::numeric_limits<double>::quiet_NaN();
-        //else
-            return d_total / n;
+        return d_total / n;
     }
 
 
@@ -223,9 +219,9 @@ public:
         // Compute the sum of the exponentials of the height difference between both maps.
         double exp_d_total = 0.0;
         const double exp_d_max = std::exp(std::abs(d_max));
-        size_t n = 0;
-        for (size_t ix = 0; ix < map_.size(); ++ix)
-            for (size_t iy = 0; iy < map_[0].size(); ++iy)
+        size_t n = 0u;
+        for (size_t ix = 0u; ix < map_.size(); ++ix)
+            for (size_t iy = 0u; iy < map_[0].size(); ++iy)
             {
                 // Compute the coordinates of the center of the map tile.
                 double x_center = x_min_ + (ix+0.5)*resolution_;
@@ -258,7 +254,7 @@ public:
 
 
     /// Saves the elevation map to a CSV file.
-    void save(std::string filename = std::string())
+    void save(std::string filename = std::string()) const
     {
         // Define the filename.
         if (filename.empty())
