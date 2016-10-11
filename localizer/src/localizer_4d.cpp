@@ -8,11 +8,9 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "localizer4d");
     ros::NodeHandle node_handle;
-    ros::Publisher particle_publisher
-            = node_handle.advertise<geometry_msgs::PoseArray>("particles", 1u);
+    ros::Publisher particle_publisher = node_handle.advertise<geometry_msgs::PoseArray>("particles", 1u);
 
-    boost::shared_ptr<MotionModel4d> motion_model
-            = boost::shared_ptr<MotionModel4d>(new MotionModel4d());
+    boost::shared_ptr<MotionModel4d> motion_model = boost::shared_ptr<MotionModel4d>(new MotionModel4d());
     std::vector<double> alpha(5, 0.0);
     alpha[0] = 0.4;
     alpha[1] = 0.4;
@@ -21,11 +19,11 @@ int main(int argc, char** argv)
     alpha[4] = 0.1;
     motion_model->set_alpha(alpha);
     motion_model->set_start_pose(tf::Transform::getIdentity());
-    motion_model->set_start_pose_variance(5.0, 1.0, (10.0/180.0) * M_PI);
+    motion_model->set_start_pose_variance(5.0, 1.0, (10.0/180.0)*M_PI);
 
     ParticleFilter<MotionModel4d, NoSensorModel> particle_filter;
     particle_filter.set_motion_model(motion_model);
-    particle_filter.set_n_particles(1e3);
+    particle_filter.set_n_particles(1000u);
     particle_filter.init();
 
     tf::Vector3 translation(0.1, 0.0, 0.0);
@@ -38,10 +36,8 @@ int main(int argc, char** argv)
     {
         particle_filter.update_motion(movement);
 
-        tf::Transform mean = particle_filter.get_mean();
-        std::cout << "[" << mean.getOrigin()[0] << "; "
-                  << mean.getOrigin()[1] << "; "
-                  << mean.getOrigin()[2] << "]" << std::endl;
+        tf::Vector3 mean = particle_filter.get_mean();
+        std::cout << "[" << mean[0] << "; " << mean[1] << "; " << mean[2] << "]" << std::endl;
 
         // Do not publish if no one is listening.
         if (particle_publisher.getNumSubscribers() < 1)
@@ -58,7 +54,7 @@ int main(int argc, char** argv)
 
         // Fill the cloud with particles.
         std::vector<Particle> particles(particle_filter.get_particles());
-        for (size_t i = 0; i < particles.size(); i++)
+        for (size_t i = 0u; i < particles.size(); ++i)
         {
             geometry_msgs::Pose pose;
             tf::poseTFToMsg(particles[i].pose, pose);
