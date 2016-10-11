@@ -34,9 +34,6 @@
 class SensorModelElevation : public SensorModel<pcl::PointCloud<pcl::PointXYZI> >
 {
 protected:
-    /// Lower bound of the resolution used to sparsify point clouds.
-    static const double min_res;
-
     /// Given elevation map.
     ElevationMap<pcl::PointXYZI> map_;
 
@@ -44,8 +41,8 @@ protected:
 public:
     /// Constructor.
     /// \param[in] map global elevation map.
-    SensorModelElevation(const pcl::PointCloud<pcl::PointXYZI>& map, double res = min_res)
-        : map_(map, res)
+    SensorModelElevation(const ElevationMap<pcl::PointXYZI>& map)
+        : map_(map)
     {
         // Save the elevation map to file.
         if (SAVE_FILES)
@@ -141,9 +138,6 @@ protected:
         particle.error += map_.match(pc_map);
     }
 };
-
-
-const double SensorModelElevation::min_res = 0.001;
 
 
 #endif
