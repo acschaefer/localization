@@ -5,19 +5,20 @@
 #include <tf/tf.h>
 
 
-/// Particle struct for use with the ParticleFilter class for robot localization.
-/// Stores all the information relevant for a particle of particle filter
-/// used for robot localization: pose and weight.
+/// Particle struct for use in robot localization.
+/// Stores the information relevant for a particle used in robot localization: 
+/// pose and localization error.
 struct Particle
 {
     /// Robot pose.
     tf::Transform pose;
 
+    /// Localization error.
     double error;
 
 
     /// Constructor.
-    /// Initializes the particle to the given pose and weight.
+    /// Initializes the particle to the given pose and error.
     Particle(const tf::Transform& pose = tf::Transform::getIdentity(), double error = 0.0)
         : pose(pose),
           error(error)
