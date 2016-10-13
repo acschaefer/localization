@@ -101,7 +101,10 @@ public:
 
         /// \todo Delete the particles with the lowest weights.
         /// \todo Add particles scattered around the current maximum.
-        particles_.resize(n_particles, Particle(get_max()));
+        if (particles_.empty())
+            particles_.resize(n_particles);
+        else
+            particles_.resize(n_particles, Particle(get_max()));
     }
 
 
