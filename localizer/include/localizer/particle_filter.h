@@ -211,9 +211,12 @@ public:
     /// Determines the pose of the particle with the highest weight.     
     tf::Transform get_max() const
     {
+        if (!is_initialized())
+            tf::Transform::getIdentity();
+
         // Compute the particle weights.
         std::vector<double> weights = get_weights();
-        
+
         // Compute the index of the particle with the highest weight.
         double max_weight = 0.0;
         size_t i;
@@ -287,6 +290,8 @@ protected:
             else
                 weights[i] /= total_weight;
         }
+
+        return weights;
     }
 };
 
