@@ -100,6 +100,7 @@ public:
         // Loop over all tiles of the elevation map and set the NaN tiles to the median of the values of all tiles
         // in the window.
         unsigned int n = 0u;
+        std::vector<std::vector<double> > map(map_);
         for (int x = 0u; x < (int)map_.size(); ++x)
             for (int y = 0u; y < (int)map_[0].size(); ++y)
                 if (std::isnan(map_[x][y]))
@@ -122,12 +123,15 @@ public:
                         std::nth_element(e_window.begin(), e_window.begin() + e_window.size()/2, e_window.end());
 
                         // Assign the median to the current map tile.
-                        map_[x,y] = e_window[e_window.size() / 2];
+                        map[x][y] = e_window[e_window.size() / 2];
 
                         // Increment the counter of filled NaN value.
                         ++n;
                     }
                 }
+
+        // Store the filtered map.
+        map_ = map;
 
         return n;
     }
