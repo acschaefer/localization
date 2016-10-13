@@ -221,10 +221,7 @@ public:
         std::vector<double> weights = get_weights();
 
         // Compute the index of the particle with the highest weight.
-        double max_weight = 0.0;
-        size_t i;
-        for (i = 0u; i < weights.size(); ++i)
-            max_weight = std::max(max_weight, weights[i]);
+        size_t i = std::distance(weights.begin(), std::max_element(weights.begin(), weights.end()));
         
         return particles_[i].pose;
     }
@@ -274,12 +271,10 @@ protected:
 
         // Convert the error values to weights and sum them up.
         double total_weight = 0.0;
-        std::vector<double> weights(particles_.size());
+        std::vector<double> weights(particles_.size(), 0.0);
         for (size_t i = 0u; i < particles_.size(); ++i)
         {
-            if (std::isnan(particles_[i].error))
-                weights[i] = 0.0;
-            else
+            if (!std::isnan(particles_[i].error))
                 weights[i] = max_error - particles_[i].error;
 
             total_weight += weights[i];
