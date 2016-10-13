@@ -2,7 +2,7 @@
 #define SENSOR_MODEL_ELEVATION_H_ SENSOR_MODEL_ELEVATION_H_
 
 // Enable/disable multithreading.
-#define MULTITHREADING false
+#define MULTITHREADING true
 
 // Enable/disable saving debug files.
 #define SAVE_FILES false
