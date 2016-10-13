@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 // Point Cloud Library.
 #include <pcl/point_cloud.h>
@@ -84,6 +85,51 @@ public:
 
             }
         }
+    }
+
+
+    unsigned int fillnan(unsigned int window_size = 3u)
+    {
+        // If the map is empty, return immediately.
+        if (map_.empty())
+            return 0u;
+
+        // Compute half the window size.
+        int d_window = std::floor(window_size / 2u);
+
+        // Loop over all tiles of the elevation map and set the NaN tiles to the median of the values of all tiles
+        // in the window.
+        unsigned int n = 0u;
+        for (int x = 0u; x < (int)map_.size(); ++x)
+            for (int y = 0u; y < (int)map_[0].size(); ++y)
+                if (std::isnan(map_[x][y]))
+                {
+                    // Collect the values of all map tiles in the window.
+                    std::vector<double> e_window;
+
+                    // Loop over all tiles in the window.
+                    for (int wx = -d_window; wx <= +d_window; ++wx)
+                        for (int wy = -d_window; wy <= +d_window; ++wy)
+                            // Check if the index is valid.
+                            if (x+wx >= 0 && x+wx < map_.size() && y+wy >= 0 && y+wy < map_[0].size())
+                                if (!std::isnan(map_[x+wx][y+wy]))
+                                    e_window.push_back(map_[x+wx][y+wy]);
+
+                    // Compute the median of the values in the window.
+                    if (!e_window.empty())
+                    {
+                        // Make sure the median value is located in the middle of the vector.
+                        std::nth_element(e_window.begin(), e_window.begin() + e_window.size()/2, e_window.end());
+
+                        // Assign the median to the current map tile.
+                        map_[x,y] = e_window[e_window.size() / 2];
+
+                        // Increment the counter of filled NaN value.
+                        ++n;
+                    }
+                }
+
+        return n;
     }
 
 
