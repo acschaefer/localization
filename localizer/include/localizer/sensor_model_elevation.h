@@ -136,6 +136,11 @@ protected:
         // Compute how well the measurements match the map by computing the mean distance between
         // the point cloud and the tiles of the elevation map.
         particle.error += map_.match(pc_map);
+
+        if (SAVE_FILES)
+            if (particle.pose.getOrigin().getX() >= -0.01 && particle.pose.getOrigin().getX() <= 0.01
+                    && particle.pose.getOrigin().getY() >= -0.01 && particle.pose.getOrigin().getY() <= 0.01)
+                pcl::io::savePCDFileASCII("scan0.pcd", pc_map);
     }
 };
 
