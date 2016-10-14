@@ -88,7 +88,7 @@ public:
     }
 
 
-    unsigned int fillnan(unsigned int window_size = 3u)
+    unsigned int fill_nan(unsigned int window_size = 3u)
     {
         // If the map is empty, return immediately.
         if (map_.empty())
@@ -216,7 +216,6 @@ public:
         unsigned int n = 0u;
         size_t ix, iy;
         for (size_t i = 0u; i < pc.size(); ++i)
-        {
             if (tile(pc[i], ix, iy))
             {
                 double dz = pc[i].z - map_[ix][iy];
@@ -226,7 +225,6 @@ public:
                     n++;
                 }
             }
-        }
 
         return d_total / std::max(1u, n);
     }
@@ -244,7 +242,6 @@ public:
             if (tile(pc[i], ix, iy))
             {
                 // Add current distance dz to total distance.
-                // Make sure the current distance stays in [0; d_max].
                 double dz = pc[i].z - map_[ix][iy];
                 if (std::isfinite(dz))
                 {
