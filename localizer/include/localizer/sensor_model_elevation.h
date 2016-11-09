@@ -53,13 +53,13 @@ public:
     /// Computes the weights of all particles based on the elevation map and the measured point cloud.
     /// \param[in] pc measured point cloud in the robot frame of reference.
     /// \param[in,out] particles set of particles.
-    virtual void compute_particle_errors(const pcl::PointCloud<pcl::PointXYZI>& pc,                     
+    virtual void compute_particle_errors(const pcl::PointCloud<pcl::PointXYZI>& pc,
                                          std::vector<Particle>& particles)
     {
         // Compute the particle weights.
         if (MULTITHREADING)
         {
-            // Compute the weights of the individual particles in parallel. Use as many threads as cores are available.
+            // Compute the errors of the individual particles in parallel. Use as many threads as cores are available.
             boost::thread_group threads;
             int n_threads = boost::thread::hardware_concurrency();
             for (int t = 0; t < n_threads; t++)
@@ -73,7 +73,7 @@ public:
         }
         else
         {
-            // Compute the weights of all particles using one thread.
+            // Compute the errors of all particles using one thread.
             for (size_t i = 0u; i < particles.size(); ++i)
                 compute_particle_error(pc, particles[i]);
         }
@@ -115,32 +115,18 @@ protected:
     }
 
 
-    /// Optimizes the z coordinate of the particle and computes its weight.
+    /// Compute the error between the given point cloud and the map.
     /// \param[in] pc point cloud provided by the sensor in the robot frame.
-    /// \param[in,out] particle particle whose weight is computed.
+    /// \param[in,out] particle robot position for which the error is computed.
     virtual void compute_particle_error(const pcl::PointCloud<pcl::PointXYZI>& pc, Particle& particle)
     {
         // Transform the sensor point cloud from the particle frame to the map frame.
         pcl::PointCloud<pcl::PointXYZI> pc_map;
         pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
 
-        // Adjust the z coordinate of the particle to minimize the mean distance between the point cloud
-        // and the elevation map.
-        tf::Vector3 position = particle.pose.getOrigin();
-        position.setZ(position.getZ() - map_.diff(pc_map));
-        particle.pose.setOrigin(position);
-
-        // Transform the sensor point cloud from the optimized particle frame to the map frame.
-        pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
-
         // Compute how well the measurements match the map by computing the mean distance between
         // the point cloud and the tiles of the elevation map.
-        particle.error += map_.match(pc_map);
-
-        if (SAVE_FILES)
-            if (particle.pose.getOrigin().getX() >= -0.01 && particle.pose.getOrigin().getX() <= 0.01
-                    && particle.pose.getOrigin().getY() >= -0.01 && particle.pose.getOrigin().getY() <= 0.01)
-                pcl::io::savePCDFileASCII("scan0.pcd", pc_map);
+        particle.error = map_.match(pc_map);
     }
 };
 

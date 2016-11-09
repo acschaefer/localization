@@ -235,19 +235,21 @@ public:
     {
         // Compute the total distance in z-direction between the point cloud and the map.
         double d_total = 0.0;
+        double dz;
         unsigned int n = 0u;
         for (size_t i = 0u; i < pc.size(); ++i)
         {
+            // Determine distance between current point and map.
             size_t ix, iy;
-            if (tile(pc[i], ix, iy))
+            if (tile(pc[i], ix, iy) && std::isfinite(map_[ix][iy]))
+                dz = pc[i].z - map_[ix][iy];
+            else
+                dz = pc[i].z;
+
+            if (std::isfinite(dz))
             {
-                // Add current distance dz to total distance.
-                double dz = pc[i].z - map_[ix][iy];
-                if (std::isfinite(dz))
-                {
-                    d_total += std::max(0.0, dz);
-                    n++;
-                }
+                d_total += std::max(0.0, dz);
+                n++;
             }
         }
 
