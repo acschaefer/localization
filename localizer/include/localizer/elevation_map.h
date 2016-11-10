@@ -169,6 +169,32 @@ public:
     }
 
 
+    /// Returns the mean z-coordinate of the lowest map tiles above or below which the given points are located.
+    double z_ground(const pcl::PointCloud<pcl::PointXYZI>& pc, double fraction) const
+    {
+        // Create a mask that tells which tiles of the elevation map are located below or above a point of the given
+        // point cloud.
+        std::vector<std::vector<bool> > mask(map_.size(), std::vector<bool>(map_[0].size(), false));
+        size_t ix, iy;
+        for (size_t i = 0u; i < pc.size(); ++i)
+            if (tile(pc[i], ix, iy))
+                if (std::isfinite(map_[ix][iy]))
+                    mask[ix][iy] = true;
+
+        // Create a vector that contains the z-coordinates of all tiles onto which points are projected.
+        std::vector<double> tile_z;
+        for (ix = 0u; ix < mask.size(); ++ix)
+            for (iy = 0u; iy < mask[0].size(); ++iy)
+                if (mask[ix][iy])
+                    tile_z.push_back(map_[ix][iy]);
+
+        // Sort the vector and compute the mean of the lowest fraction of the coordinates.
+        std::sort(tile_z.begin(), tile_z.end());
+        int n = std::max(1, std::min<int>(tile_z.size(), (int)(fraction*tile_z.size()+0.5)));
+        return std::accumulate(tile_z.begin(), tile_z.begin()+n, 0.0) / n;
+    }
+
+
     /// Computes a measure of how well the given map matches this map by computing the mean distance
     /// between the two elevation maps.
     double diff(const ElevationMap& map, double d_max = 1.0) const
