@@ -239,13 +239,19 @@ public:
         unsigned int n = 0u;
         for (size_t i = 0u; i < pc.size(); ++i)
         {
-            // Determine distance between current point and map.
+            // Determine distance between the current point and the map.
             size_t ix, iy;
-            if (tile(pc[i], ix, iy) && std::isfinite(map_[ix][iy]))
-                dz = pc[i].z - map_[ix][iy];
+            if (tile(pc[i], ix, iy))
+            {
+                if (std::isfinite(map_[ix][iy]))
+                    dz = pc[i].z - map_[ix][iy];
+                else
+                    dz = pc[i].z;
+            }
             else
                 dz = pc[i].z;
 
+            // If the distance is finite, add it to the total distance.
             if (std::isfinite(dz))
             {
                 d_total += std::max(0.0, dz);
@@ -253,6 +259,7 @@ public:
             }
         }
 
+        // Compute the mean distance.
         return d_total / n;
     }
 
