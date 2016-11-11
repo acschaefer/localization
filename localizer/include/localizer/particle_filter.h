@@ -47,12 +47,12 @@ public:
     {
         motion_model_ = motion_model;
     }
-    
-    
+
+
     /// Sets the motion model.
     void set_motion_model(const MotionModelT& motion_model)
     {
-        motion_model_ = boost::make_shared<MotionModelT>(motion_model); 
+        motion_model_ = boost::make_shared<MotionModelT>(motion_model);
     }
 
 
@@ -68,8 +68,8 @@ public:
     {
         sensor_model_ = sensor_model;
     }
-    
-    
+
+
     /// Sets the sensor model.
     void set_sensor_model(const SensorModelT& sensor_model)
     {
@@ -142,7 +142,7 @@ public:
 
 
     /// Resample the particles according to their weights.
-    /// This algorithm is the low variance sampler taken from the book "Probabilistic Robotics" 
+    /// This algorithm is the low variance sampler taken from the book "Probabilistic Robotics"
     /// by Thrun et al., MIT Press, 2005.
     void resample()
     {
@@ -152,7 +152,7 @@ public:
         // The low variance sampling algorithm assumes the particle weights are normalized.
         std::vector<double> weights = get_weights();
 
-        // Create the vector that will be filled with the resampled particles. 
+        // Create the vector that will be filled with the resampled particles.
         std::vector<Particle> resampled_particles;
 
         // Execute the algorithm. The variable names are chosen according to the variables in the book.
@@ -193,25 +193,29 @@ public:
     }
 
 
-    /// Computes the weighted mean position of all particles.
-    tf::Vector3 get_mean() const
+    /// Computes the weighted mean position of all particles and combines it with the orientation of the particle
+    /// with the highest weight.
+    tf::Transform get_mean() const
     {
-        // Initialize the return value.
-        tf::Vector3 mean;
-        mean.setZero();
-        
         // Compute the particle weights.
         std::vector<double> weights = get_weights();
 
-        // Compute the mean particle position.
+        // Compute the mean particle position and identify the particle with the highest weight.
+        tf::Vector3 mean_position(0.0, 0.0, 0.0);
+        size_t imax = 0u;
         for (size_t i = 0u; i < particles_.size(); ++i)
-            mean += particles_[i].pose.getOrigin() * weights[i];
+        {
+            mean_position += particles_[i].pose.getOrigin() * weights[i];
 
-        return mean;
+            if (weights[i] > weights[imax])
+                imax = i;
+        }
+
+        return tf::Transform(particles_[imax].pose.getRotation(), mean_position);
     }
-    
 
-    /// Determines the pose of the particle with the highest weight.     
+
+    /// Determines the pose of the particle with the highest weight.
     tf::Transform get_max() const
     {
         if (!is_initialized())
@@ -222,7 +226,7 @@ public:
 
         // Compute the index of the particle with the highest weight.
         size_t i = std::distance(weights.begin(), std::max_element(weights.begin(), weights.end()));
-        
+
         return particles_[i].pose;
     }
 
@@ -232,7 +236,7 @@ public:
     {
         // Compute the particle weights.
         std::vector<double> weights = get_weights();
-        
+
         // Compute the sum of the squared weights of all particles.
         double wsq = 0.0;
         for (size_t i = 0u; i < weights.size(); ++i)
@@ -279,7 +283,7 @@ protected:
 
             total_weight += weights[i];
         }
-        
+
         // Normalize the weights.
         for (size_t i = 0u; i < weights.size(); ++i)
         {

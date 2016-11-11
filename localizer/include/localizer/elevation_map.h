@@ -79,7 +79,7 @@ public:
             if (tile(point_cloud[i], ix, iy))
             {
                 if (std::isfinite(map_[ix][iy]))
-                    map_[ix][iy] = std::max<double>(map_[ix][iy], (double)point_cloud[i].z);
+                    map_[ix][iy] = std::max<double>(map_[ix][iy], point_cloud[i].z);
                 else
                     map_[ix][iy] = (double)point_cloud[i].z;
 

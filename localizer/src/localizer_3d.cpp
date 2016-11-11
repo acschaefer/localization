@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     {
         particle_filter.update_motion(movement);
 
-        tf::Vector3 mean = particle_filter.get_mean();
+        tf::Vector3 mean = particle_filter.get_mean().getOrigin();
         std::cout << "[" << mean[0] << "; " << mean[1] << "; " << mean[2] << "]" << std::endl;
 
         // Do not publish if no one is listening.
