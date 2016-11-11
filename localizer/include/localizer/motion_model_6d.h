@@ -98,28 +98,6 @@ public:
             particles[p].pose = particles[p].pose * tf::Transform(rotation, translation);
         }
     }
-
-
-    /// Returns the pose of the most likely particle.
-    /// \return pose of the most likely particle.
-    virtual tf::Transform get_mean(const std::vector<Particle>& particles)
-    {
-        //if (particles.empty())
-            return tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0));
-
-        /*double max_weight = std::numeric_limits<double>::min();
-        size_t i_max = -1;
-        for (size_t p = 0; p < particles.size(); p++)
-        {
-            if (max_weight < particles[p].weight)
-            {
-                max_weight = particles[p].weight;
-                i_max = p;
-            }
-        }
-
-        return particles[i_max].pose;*/
-    }
 };
 
 
