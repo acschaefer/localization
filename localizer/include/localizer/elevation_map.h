@@ -213,8 +213,11 @@ public:
 
         // Compute the mean of the lowest tiles.
         std::sort(tile_z.begin(), tile_z.end());
-        int n = std::max(1, std::min<int>(tile_z.size(), (int)(fraction*tile_z.size()+0.5)));
-        return accumulate(tile_z.begin(), tile_z.begin()+n, 0.0) / n;
+        int n = std::min<int>(tile_z.size(), (int)(fraction*tile_z.size()+0.5));
+        if (n > 0)
+            return accumulate(tile_z.begin(), tile_z.begin()+n, 0.0) / n;
+        else
+            return 0.0;
     }
 
 
