@@ -83,9 +83,9 @@ public:
 
         // Add noise to the motion increments.
         GaussVectorGenerator random_translation(movement.getOrigin(),
-                                                tf::Vector3(variance(0,0), variance(1,0), variance(2,0)));
+                                                tf::Vector3(variance[0], variance[1], variance[2]));
         GaussVectorGenerator random_rotation(tf::Vector3(roll, pitch, yaw),
-                                             tf::Vector3(variance(3,0), variance(4,0), variance(5,0)));
+                                             tf::Vector3(variance[3], variance[4], variance[5]));
         for (size_t p = 0; p < particles.size(); ++p)
         {
             // Generate random translation and rotation.
