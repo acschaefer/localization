@@ -2,7 +2,7 @@
 #define SENSOR_MODEL_ELEVATION_H_ SENSOR_MODEL_ELEVATION_H_
 
 // Enable/disable multithreading.
-#define MULTITHREADING true
+#define MULTITHREADING false
 
 // Enable/disable saving debug files.
 #define SAVE_FILES false
@@ -115,29 +115,28 @@ protected:
     }
 
 
+    /// Adjust the z-position of the particle to make sure the robot stands on the ground.
+    void correct_z(Particle& particle) const
+    {
+        // Compute the height of the local ground plane of the map relative to the map frame.
+        double z_ground = map_.z_ground(particle.pose.getOrigin().getX(), particle.pose.getOrigin().getY(), 2.0, 0.2);
+
+        // Add the distance from the ground to the robot base to the computed z-coordinate and assign it to the
+        // particle's z-position.
+        particle.pose.getOrigin().setZ(z_ground + 0.955);
+    }
+
+
     /// Compute the error between the given point cloud and the map.
     /// \param[in] pc point cloud provided by the sensor in the robot frame.
     /// \param[in,out] particle robot position for which the error is computed.
     virtual void compute_particle_error(const pcl::PointCloud<pcl::PointXYZI>& pc, Particle& particle)
     {
+        // Correct the z-coordinate of the particle to make sure the robot stands on the ground.
+        correct_z(particle);
+
         // Transform the sensor point cloud from the particle frame to the map frame.
         pcl::PointCloud<pcl::PointXYZI> pc_map;
-        pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
-
-        // Compute the z-coordinate of the ground plane of the map.
-        double z_map = map_.z_ground(pc_map, 0.2);
-
-        // Compute the z-coordinate of the ground plane of the sensor point cloud.
-        std::vector<double> z;
-        for (size_t i = 0u; i < pc_map.size(); ++i)
-            if (std::isfinite(pc_map[i].z))
-                z.push_back(pc_map[i].z);
-        std::sort(z.begin(), z.end());
-        int n = std::max(1, std::min<int>(z.size(), (int)(0.2*z.size()+0.5)));
-        double z_pc = std::accumulate(z.begin(), z.begin()+n, 0.0) / n;
-
-        // Adjust the z-coordinate of the particle.
-        particle.pose.getOrigin().setZ(particle.pose.getOrigin().getZ() + z_map - z_pc);
         pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
 
         // Compute how well the measurements match the map by computing the mean distance between
