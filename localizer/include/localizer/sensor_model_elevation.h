@@ -125,7 +125,7 @@ protected:
         pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
 
         // Compute the z-coordinate of the ground plane of the map.
-        double z_map = map_.z_ground(pc_map, 1.0);
+        double z_map = map_.z_ground(pc_map, 0.2);
 
         // Compute the z-coordinate of the ground plane of the sensor point cloud.
         std::vector<double> z;
