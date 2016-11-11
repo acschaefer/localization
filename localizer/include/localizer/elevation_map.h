@@ -195,6 +195,29 @@ public:
     }
 
 
+    /// Returns the mean z-coordinate of the lowest map tiles in a square around the given position.
+    double z_ground(double x, double y, double a, double fraction) const
+    {
+        // Compute the start and end indices in x- and y-direction.
+        int ixstart = std::max<int>(((x-a/2) - x_min_) / resolution_, 0);
+        int ixend   = std::min<int>(((x+a/2) - x_min_) / resolution_, map_.size());
+        int iystart = std::max<int>(((y-a/2) - y_min_) / resolution_, 0);
+        int iyend   = std::min<int>(((y+a/2) - y_min_) / resolution_, map_[0].size());
+
+        // Push the z-coordinates of all tiles inside the square into a vector.
+        std::vector<double> tile_z;
+        for (int ix = ixstart; ix < ixend; ++ix)
+            for (int iy = iystart; iy < iyend; ++iy)
+                if (std::isfinite(map_[ix][iy]))
+                    tile_z.push_back(map_[ix][iy]);
+
+        // Compute the mean of the lowest tiles.
+        std::sort(tile_z.begin(), tile_z.end());
+        int n = std::max(1, std::min<int>(tile_z.size(), (int)(fraction*tile_z.size()+0.5)));
+        return accumulate(tile_z.begin(), tile_z.begin()+n, 0.0) / n;
+    }
+
+
     /// Computes a measure of how well the given map matches this map by computing the mean distance
     /// between the two elevation maps.
     double diff(const ElevationMap& map, double d_max = 1.0) const
