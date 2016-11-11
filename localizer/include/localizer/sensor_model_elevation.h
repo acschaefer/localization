@@ -102,7 +102,7 @@ protected:
     /// \param[in] pc lidar point cloud in the robot frame of reference.
     /// \param[in] thread number of this thread.
     void compute_particle_errors_thread(const pcl::PointCloud<pcl::PointXYZI>& pc,
-                                         std::vector<Particle>& particles, int thread)
+                                        std::vector<Particle>& particles, int thread)
     {
         // Compute the weights of the individual particles.
         // Distribute the particles equally over all available threads.
@@ -122,6 +122,22 @@ protected:
     {
         // Transform the sensor point cloud from the particle frame to the map frame.
         pcl::PointCloud<pcl::PointXYZI> pc_map;
+        pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
+
+        // Compute the z-coordinate of the ground plane of the map.
+        double z_map = map_.z_ground(pc_map, 1.0);
+
+        // Compute the z-coordinate of the ground plane of the sensor point cloud.
+        std::vector<double> z;
+        for (size_t i = 0u; i < pc_map.size(); ++i)
+            if (std::isfinite(pc_map[i].z))
+                z.push_back(pc_map[i].z);
+        std::sort(z.begin(), z.end());
+        int n = std::max(1, std::min<int>(z.size(), (int)(0.2*z.size()+0.5)));
+        double z_pc = std::accumulate(z.begin(), z.begin()+n, 0.0) / n;
+
+        // Adjust the z-coordinate of the particle.
+        particle.pose.getOrigin().setZ(particle.pose.getOrigin().getZ() + z_map - z_pc);
         pcl_ros::transformPointCloud(pc, pc_map, particle.pose);
 
         // Compute how well the measurements match the map by computing the mean distance between
