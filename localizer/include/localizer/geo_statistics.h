@@ -13,13 +13,6 @@
 #include <Eigen/Eigenvalues>
 
 
-/// Computes the mean of all given vectors.
-tf::Vector3 vectormean(const std::vector<tf::Vector3>& v)
-{
-    return std::accumulate(v.begin(), v.end(), tf::Vector3(0.0, 0.0, 0.0)) / v.size();
-}
-
-
 /// Scales the given vectors by the given scaling factor.
 tf::Vector3 vectorscale(const tf::Vector3& v, const double& s)
 {
@@ -33,8 +26,14 @@ tf::Vector3 vectormean(std::vector<tf::Vector3> v, const std::vector<double>& w)
     ROS_ERROR_COND(v.size() != w.size(), "Numbers of vectors and weights do not match.");
 
     std::transform(v.begin(), v.end(), w.begin(), v.begin(), vectorscale);
+    return std::accumulate(v.begin(), v.end(), tf::Vector3(0.0, 0.0, 0.0));
+}
 
-    return vectormean(v);
+
+/// Computes the mean of all given vectors.
+tf::Vector3 vectormean(const std::vector<tf::Vector3>& v)
+{
+    return vectormean(v, std::vector<double>(v.size(), 1.0/v.size()));
 }
 
 
