@@ -15,6 +15,9 @@
 // Random number generators.
 #include "localizer/random_generators.h"
 
+// Geometry statistics.
+#include "geo_statistics.h"
+
 
 /// Partile filter for robot localization.
 template<typename MotionModelT, typename SensorModelT>
@@ -197,21 +200,11 @@ public:
     /// with the highest weight.
     tf::Transform get_mean() const
     {
-        // Compute the particle weights.
-        std::vector<double> weights = get_weights();
-
-        // Compute the mean particle position and identify the particle with the highest weight.
-        tf::Vector3 mean_position(0.0, 0.0, 0.0);
-        size_t imax = 0u;
+        std::vector<tf::Transform> tf;
         for (size_t i = 0u; i < particles_.size(); ++i)
-        {
-            mean_position += particles_[i].pose.getOrigin() * weights[i];
+            tf.push_back(particles_[i].pose);
 
-            if (weights[i] > weights[imax])
-                imax = i;
-        }
-
-        return tf::Transform(particles_[imax].pose.getRotation(), mean_position);
+        return tfmean(tf, get_weights());
     }
 
 

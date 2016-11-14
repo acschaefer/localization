@@ -11,6 +11,8 @@ find_package(catkin REQUIRED
   tf_conversions
 )
 
+## Find Eigen.
+find_package(Eigen REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -23,6 +25,7 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
+  DEPENDS Eigen
 )
 
 ###########
@@ -30,7 +33,9 @@ catkin_package(
 ###########
 ## Specify additional locations of header files.
 ## Your package locations should be listed before other locations.
-include_directories(include)
+include_directories(include
+    ${Eigen_INCLUDE_DIRS}
+)
 
 ## Declare a C++ executable
 add_executable(localizer3d src/localizer_3d.cpp)
