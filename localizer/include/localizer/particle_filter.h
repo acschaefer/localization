@@ -200,6 +200,10 @@ public:
     /// with the highest weight.
     tf::Transform get_mean() const
     {
+        if (!is_initialized())
+            tf::Transform::getIdentity();
+
+        // Compute the weighted average of the poses of the particles.
         std::vector<tf::Transform> tf;
         for (size_t i = 0u; i < particles_.size(); ++i)
             tf.push_back(particles_[i].pose);
@@ -217,10 +221,8 @@ public:
         // Compute the particle weights.
         std::vector<double> weights = get_weights();
 
-        // Compute the index of the particle with the highest weight.
-        size_t i = std::distance(weights.begin(), std::max_element(weights.begin(), weights.end()));
-
-        return particles_[i].pose;
+        // Return the pose of the most likely particle.
+        return particles_[std::distance(weights.begin(), std::max_element(weights.begin(), weights.end()))].pose;
     }
 
 
